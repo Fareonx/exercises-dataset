@@ -271,6 +271,11 @@ textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;bord
           </div>
           <button class="btn" type="submit" id="calcBtn">Hesabla</button>
         </form>
+        <div class="row" id="photoRow" hidden>
+          <label class="btn ghost small" for="photoInput" style="cursor:pointer">📷 Etiketin şəklini çək</label>
+          <span class="small muted">Qablaşdırmadakı “Valori nutrizionali” cədvəli: dəqiq rəqəmlər yadda qalır.</span>
+          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+        </div>
         <div id="calcResult" aria-live="polite"></div>
         <div id="draftBox" hidden style="display:grid;gap:10px">
           <div class="label">Yeməyin tərkibi</div>
@@ -475,10 +480,14 @@ function getDay(s){
 }
 
 /* ---------- foods ---------- */
+const SRC_CAT = {ai:"AI ilə hesablanıb", label:"Etiketdən", manual:"Öz məhsulum", own:"Öz məhsulum"};
+const SRC_TAG = {baza:"baza", ai:"AI · təxmini", label:"etiket", manual:"öz rəqəmim", own:"öz rəqəmim"};
 function allFoods(){
   const base = PLAN.foods.map(f => ({id:f.id, name:f.name, it:f.it, cat:f.cat, k:f.k, p:f.p, c:f.c, f:f.f, hint:f.hint}));
-  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:f.it||"", cat:f.src==="ai"?"AI ilə hesablanıb":"Öz məhsulum", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
-  return base.concat(custom);
+  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:f.it||"", cat:SRC_CAT[f.src]||"Öz məhsulum", src:f.src||"own", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
+  // own products first: they win over the base when the names match
+  const own = new Set(custom.map(f => f.name.toLowerCase()));
+  return custom.concat(base.filter(f => !own.has(f.name.toLowerCase())).map(f => Object.assign(f, {src:"baza"})));
 }
 function foodById(id){ return allFoods().find(f => f.id === id); }
 function foodLabel(f){ return f.it ? f.name+" ("+f.it+")" : f.name; }
@@ -651,7 +660,18 @@ function fuzzyFood(text){
   const exact = findFood(text); if(exact) return exact;
   const t = text.trim().toLowerCase(); if(t.length < 3) return null;
   const list = allFoods();
-  return list.find(f => f.name.toLowerCase().startsWith(t) || (f.it||"").toLowerCase().startsWith(t)) || null;
+  const pre = list.find(f => f.name.toLowerCase().startsWith(t) || (f.it||"").toLowerCase().startsWith(t));
+  if(pre) return pre;
+  // word match: most words of the query appear in the product's name (own products are checked first)
+  const words = t.split(/[^a-z0-9əğıöüşçà-ÿ%]+/i).filter(w => w.length >= 3);
+  if(words.length < 2) return null;
+  let best = null, bestScore = 0;
+  for(const f of list){
+    const lab = foodLabel(f).toLowerCase();
+    const hit = words.filter(w => lab.includes(w)).length / words.length;
+    if(hit > bestScore){ best = f; bestScore = hit; }
+  }
+  return bestScore >= 0.6 ? best : null;
 }
 function setAiState(){
   $("#aiState").textContent = sampleFn ? "AI hesablayır" : "yalnız baza";
@@ -661,21 +681,95 @@ async function initSample(){
     try{ sampleFn = await window.claude.use("sample"); }catch(e){ sampleFn = null; }
   }
   setAiState();
+  if(sampleFn && typeof sampleFn.limits === "function"){
+    const lim = await sampleFn.limits().catch(() => null);
+    $("#photoRow").hidden = !(lim && lim.images);
+  }
 }
 function showResult(html){ $("#calcResult").innerHTML = html; }
 function renderCalc(){
   if(!calcRes){ showResult(""); return; }
+  if(calcRes.edit){ renderEditor(); return; }
   const {food, g, src, note} = calcRes, m = calc(food, g);
   showResult(`<div class="result">
-    <div class="mealhead"><span class="nm">${esc(foodLabel(food))}</span><span class="src ${src==="ai"?"ai":""}">${src==="ai"?"AI · təxmini":"baza"}</span></div>
+    <div class="mealhead"><span class="nm">${esc(foodLabel(food))}</span><span class="src ${src==="ai"?"ai":""}">${esc(SRC_TAG[src]||src)}</span></div>
     <div class="small">${macrosLine(m, g)}</div>
     ${note ? `<div class="small muted">${esc(note)}</div>` : ""}
     <div class="small muted">100 q: ${fmt(food.k)} kkal · P ${fmt(food.p,1)} · K ${fmt(food.c,1)} · Y ${fmt(food.f,1)}</div>
-    <div class="row"><button class="btn small" type="button" id="toDraft">+ Yeməyə əlavə et</button><button class="btn ghost small" type="button" id="toLog">Ayrıca gündəliyə yaz</button></div>
+    ${src==="ai" ? `<div class="small muted">Dəqiq rəqəm üçün etiketin şəklini çək və ya “Düzəlt” bas.</div>` : ""}
+    <div class="row"><button class="btn small" type="button" id="toDraft">+ Yeməyə əlavə et</button><button class="btn ghost small" type="button" id="toLog">Ayrıca gündəliyə yaz</button><button class="btn ghost small" type="button" id="toEdit">Düzəlt</button></div>
   </div>`);
+  $("#toEdit").onclick = () => { calcRes.edit = true; renderCalc(); };
   $("#toDraft").onclick = () => { draft.push(entryFrom(food, g)); cacheAiFood(food, src); calcRes = null; renderCalc(); renderDraft(); resetInputs(); toast("Yeməyə əlavə olundu"); };
   $("#toLog").onclick = () => { addEntries([entryFrom(food, g)], $("#mealSelect").value, null); cacheAiFood(food, src); calcRes = null; renderCalc(); resetInputs(); toast("Gündəliyə yazıldı"); };
 }
+function renderEditor(){
+  const {food, src, note} = calcRes;
+  const v = x => x === undefined || x === null ? "" : String(x);
+  showResult(`<form class="result" id="editForm" autocomplete="off">
+    <div class="mealhead"><span class="nm">Rəqəmləri yoxla (100 q üçün)</span><span class="src ${src==="label"?"":"ai"}">${esc(SRC_TAG[src]||src)}</span></div>
+    ${note ? `<div class="small muted">${esc(note)}</div>` : ""}
+    <div class="addform">
+      <div class="field full"><label class="label" for="eName">Ad</label><input id="eName" value="${esc(v(food.name))}"></div>
+      <div class="field full"><label class="label" for="eIt">İtalyanca (etiketdəki ad)</label><input id="eIt" value="${esc(v(food.it))}"></div>
+      <div class="field"><label class="label" for="eK">Energia, kcal</label><input class="num" id="eK" type="number" step="1" min="0" inputmode="decimal" value="${esc(v(food.k))}"></div>
+      <div class="field"><label class="label" for="eP">Proteine, q</label><input class="num" id="eP" type="number" step="0.1" min="0" inputmode="decimal" value="${esc(v(food.p))}"></div>
+      <div class="field"><label class="label" for="eC">Carboidrati, q</label><input class="num" id="eC" type="number" step="0.1" min="0" inputmode="decimal" value="${esc(v(food.c))}"></div>
+      <div class="field"><label class="label" for="eF">Grassi, q</label><input class="num" id="eF" type="number" step="0.1" min="0" inputmode="decimal" value="${esc(v(food.f))}"></div>
+    </div>
+    <div class="row"><button class="btn small" type="submit">Yadda saxla</button><button class="btn ghost small" type="button" id="eCancel">Ləğv et</button></div>
+  </form>`);
+  $("#eCancel").onclick = () => { if(calcRes.fromPhoto){ calcRes = null; } else { calcRes.edit = false; } renderCalc(); };
+  $("#editForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const n = id => Number(String($(id).value).replace(",", "."));
+    const name = $("#eName").value.trim(), k = n("#eK");
+    if(!name || !(k >= 0) || $("#eK").value === ""){ toast("Ad və kcal mütləqdir"); return; }
+    const vals = {name: name.slice(0,80), it: $("#eIt").value.trim().slice(0,80), k: Math.round(k), p: +(n("#eP")||0).toFixed(1), c: +(n("#eC")||0).toFixed(1), f: +(n("#eF")||0).toFixed(1)};
+    const saved = saveOwnFood(vals, src === "label" ? "label" : "manual", food);
+    calcRes = {food: saved, g: calcRes.g, src: saved.src, note: ""};
+    if(!calcRes.g){ renderCalc(); toast("Yadda saxlanıldı. Qramı yaz və “Hesabla” bas"); $("#foodInput").value = foodLabel(saved); $("#gramInput").focus(); return; }
+    renderCalc(); toast("Yadda saxlanıldı: növbəti dəfə dəqiq rəqəmlər çıxacaq");
+  });
+}
+function saveOwnFood(vals, src, prev){
+  const list = (state.profile.customFoods || []).slice();
+  const own = prev && list.find(f => f.id === prev.id);
+  const same = list.find(f => f.name.toLowerCase() === vals.name.toLowerCase());
+  const target = own || same;
+  const rec = Object.assign({id: target ? target.id : (src === "label" ? "lbl_" : "own_") + uid()}, vals, {src});
+  state.profile.customFoods = target ? list.map(f => f.id === target.id ? rec : f) : [rec].concat(list);
+  persistProfile(); fillFoodList(); renderProfile();
+  return {id: rec.id, name: rec.name, it: rec.it, cat: SRC_CAT[src], src, k: rec.k, p: rec.p, c: rec.c, f: rec.f, hint: ""};
+}
+async function readLabel(file){
+  if(!file || !sampleFn) return;
+  aiCtl && aiCtl.abort(); aiCtl = new AbortController();
+  const g = Number($("#gramInput").value) || null;
+  showResult(`<div class="result"><span class="small muted">Etiket oxunur… (10–40 saniyə)</span></div>`);
+  const prompt = `The image is a photo of an Italian food package. Read the nutrition table ("Valori nutrizionali", per 100 g) exactly as printed.
+Do NOT estimate or use outside knowledge: copy only the numbers you can read on the label. Use the per 100 g column (not per portion).
+Also read the product name as printed (Italian) and the brand, and give a short Azerbaijani name for the product.
+Reply with only JSON: {"name_it": string, "brand": string, "name_az": string, "kcal100": number, "fat100": number, "carbs100": number, "protein100": number}
+If the photo does not show a readable nutrition table, reply {"error": "short Azerbaijani explanation"}.`;
+  try{
+    const r = await sampleFn.json(prompt, {images:[file], modelTier:"default", signal: aiCtl.signal});
+    if(!r || r.error){ showResult(`<div class="result"><span class="small">${esc((r && r.error) || "Cədvəl oxunmadı.")} Cədvəli yaxından, işıqlı yerdə çək.</span></div>`); return; }
+    const num = x => { const n = Number(String(x).replace(",", ".")); return isFinite(n) && n >= 0 ? n : ""; };
+    const brand = String(r.brand || "").slice(0,30);
+    const name = (String(r.name_az || r.name_it || "Məhsul").slice(0,50)) + (brand ? ` (${brand})` : "");
+    calcRes = {food:{id:null, name, it:String(r.name_it||"").slice(0,80), k:num(r.kcal100), p:num(r.protein100), c:num(r.carbs100), f:num(r.fat100)},
+      g, src:"label", edit:true, fromPhoto:true, note:"Etiketdən oxundu. Rəqəmləri şəkil ilə müqayisə et, səhv varsa düzəlt və yadda saxla."};
+    renderCalc();
+  }catch(e){
+    if(e && e.code === "cancelled") return;
+    if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sampleFn = null; setAiState(); }
+    if(e && e.code === "images_unavailable") $("#photoRow").hidden = true;
+    const msg = e && e.code === "image_rejected" ? "Şəkil qəbul olunmadı. Başqa şəkil seç (JPEG/PNG)." : (AI_ERR[e && e.code] || "Etiket oxunmadı. Yenidən cəhd et.");
+    showResult(`<div class="result"><span class="small">${esc(msg)}</span></div>`);
+  }
+}
+$("#photoInput").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; readLabel(f); });
 function resetInputs(){ $("#foodInput").value = ""; $("#gramInput").value = ""; $("#foodInput").focus(); }
 function entryFrom(food, g){ return {f:food.id, name:food.name, it:food.it||"", g:Math.round(g), k:food.k, p:food.p, c:food.c, fat100:food.f}; }
 function cacheAiFood(food, src){
@@ -729,7 +823,7 @@ $("#calcForm").addEventListener("submit", e => {
   const f = fuzzyFood(name) || fuzzyFood(raw);
   if(f){
     if(!g){ toast("Qramı yaz" + (f.hint ? " · " + f.hint : "")); $("#gramInput").focus(); return; }
-    calcRes = {food:f, g, src:"baza", note:f.hint||""}; renderCalc(); return;
+    calcRes = {food:f, g, src:f.src||"baza", note:f.hint||""}; renderCalc(); return;
   }
   if(sampleFn){ askAi(name, g); return; }
   calcRes = null;
@@ -1016,7 +1110,7 @@ function renderProfile(){
    <tr><td>Yağ (kalorinin 25%-i)</td><td class="r">${fmt(r.f)}–${fmt(g.f)} q</td></tr>
    <tr><td>Karbohidrat</td><td class="r">${fmt(r.c)}–${fmt(g.c)} q</td></tr>
    <tr><td>Su</td><td class="r">2,5–3 l</td></tr></tbody>`;
-  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(foodLabel(f))}${f.src==="ai"?' <span class="src ai">AI</span>':""}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
+  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(foodLabel(f))}${f.src && f.src!=="manual" && f.src!=="own" ? ` <span class="src ${f.src==="ai"?"ai":""}">${esc(SRC_TAG[f.src]||f.src)}</span>` : ""}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
   $("#customList").querySelectorAll("[data-cdel]").forEach(b => b.onclick = () => { p.customFoods = p.customFoods.filter(f => f.id !== b.dataset.cdel); persistProfile(); renderAll(); });
 }
 $("#profileForm").addEventListener("submit", e => {
