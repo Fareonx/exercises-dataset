@@ -258,7 +258,25 @@ textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;bord
 
       <div class="card" style="display:grid;gap:12px" id="builderCard">
         <div class="mealhead"><h3>Yemək qur</h3><span class="small muted" id="aiState"></span></div>
-        <p class="small muted" style="margin:0">Məhsulu və qramı yaz, “Hesabla” bas: kalori və makrolar aşağıda görünəcək. Məhsulları bir-bir əlavə et, sonra yeməyə ad ver və gündəliyə yaz.</p>
+        <div class="seg" role="group" aria-label="Necə əlavə edirsən" id="modeSeg">
+          <button type="button" data-mode="g" aria-pressed="true">Çəki ilə (q)</button>
+          <button type="button" data-mode="p" aria-pressed="false">Porsiya (restoran)</button>
+        </div>
+        <p class="small muted" style="margin:0" id="modeHelp">Məhsulu və qramı yaz, “Hesabla” bas: kalori və makrolar aşağıda görünəcək. Məhsulları bir-bir əlavə et, sonra yeməyə ad ver və gündəliyə yaz.</p>
+        <div id="portionBox" hidden style="display:grid;gap:10px">
+          <div class="field"><label class="label" for="pName">Nə yedin</label><input id="pName" list="foodList" placeholder="məs. cheeseburger + kartof fri + Coca-Cola 0,4 l" autocomplete="off"></div>
+          <div class="addform">
+            <div class="field"><label class="label" for="pSize">Ölçü</label><select id="pSize"><option value="kiçik">Kiçik</option><option value="orta" selected>Orta</option><option value="böyük">Böyük</option></select></div>
+            <div class="field"><label class="label" for="pCount">Neçə ədəd</label><input class="num" id="pCount" type="number" min="0.5" step="0.5" value="1" inputmode="decimal"></div>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" id="pAi">AI ilə təxmin et</button>
+            <label class="btn ghost" for="pPhoto" id="pPhotoBtn" hidden style="cursor:pointer">📷 Boşqabın şəkli</label>
+            <input id="pPhoto" type="file" accept="image/*" capture="environment" hidden>
+            <button class="btn ghost" type="button" id="pManual">Özüm yazacam</button>
+          </div>
+          <p class="small muted" style="margin:0">Bilmirsənsə, “orta” seç. Sousu, yağı və içkini də yaz: kalorinin çoxu oradadır. Zəncir restoranlarında (McDonald's, Burger King) adı dəqiq yaz.</p>
+        </div>
         <form id="calcForm" class="builder-row" autocomplete="off">
           <div class="field" style="min-width:0">
             <label class="label" for="foodInput">Məhsul</label>
@@ -484,7 +502,7 @@ const SRC_CAT = {ai:"AI ilə hesablanıb", label:"Etiketdən", manual:"Öz məhs
 const SRC_TAG = {baza:"baza", ai:"AI · təxmini", label:"etiket", manual:"öz rəqəmim", own:"öz rəqəmim"};
 function allFoods(){
   const base = PLAN.foods.map(f => ({id:f.id, name:f.name, it:f.it, cat:f.cat, k:f.k, p:f.p, c:f.c, f:f.f, hint:f.hint}));
-  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:f.it||"", cat:SRC_CAT[f.src]||"Öz məhsulum", src:f.src||"own", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
+  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:f.it||"", cat:f.pg ? "Restoran porsiyası" : (SRC_CAT[f.src]||"Öz məhsulum"), src:f.src||"own", k:f.k, p:f.p, c:f.c, f:f.f, pg:f.pg||0, pgKnown:f.pgKnown, hint: f.pg ? "1 porsiya" : ""}));
   // own products first: they win over the base when the names match
   const own = new Set(custom.map(f => f.name.toLowerCase()));
   return custom.concat(base.filter(f => !own.has(f.name.toLowerCase())).map(f => Object.assign(f, {src:"baza"})));
@@ -646,10 +664,15 @@ function fillFoodList(){
 }
 
 /* ---------- meal builder ---------- */
-let sampleFn = null, aiCtl = null, calcRes = null, draft = [];
+let sampleFn = null, aiCtl = null, calcRes = null, draft = [], photoOk = false;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 function itemLabel(i){ const it = i.it || (foodById(i.f)||{}).it || ""; return it ? `${i.name} (${it})` : i.name; }
-function macrosLine(m, g){ return `${fmt(g)} q · <b class="num">${fmt(m.kcal)} kkal</b> · P ${fmt(m.p,1)} · K ${fmt(m.c,1)} · Y ${fmt(m.fat,1)}`; }
+function qtyText(it){
+  if(!it.pg) return `${fmt(it.g)} q`;
+  const n = it.g / it.pg, nTxt = fmt(n, Math.abs(n - Math.round(n)) > 0.01 ? 1 : 0);
+  return it.pgKnown === false ? `${nTxt} porsiya` : `${nTxt} porsiya (~${fmt(it.g)} q)`;
+}
+function macrosLine(m, g, pg, pgKnown){ return `${qtyText({g, pg, pgKnown})} · <b class="num">${fmt(m.kcal)} kkal</b> · P ${fmt(m.p,1)} · K ${fmt(m.c,1)} · Y ${fmt(m.fat,1)}`; }
 function parseEntry(text){
   let t = text.trim(), g = null, mm;
   if((mm = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:q|qr|qram|g|gr|gram|grams)\s+(.+)$/i))){ g = parseFloat(mm[1].replace(",", ".")); t = mm[2]; }
@@ -683,23 +706,26 @@ async function initSample(){
   setAiState();
   if(sampleFn && typeof sampleFn.limits === "function"){
     const lim = await sampleFn.limits().catch(() => null);
-    $("#photoRow").hidden = !(lim && lim.images);
+    photoOk = !!(lim && lim.images);
+    $("#photoRow").hidden = !photoOk || mode === "p";
+    $("#pPhotoBtn").hidden = !photoOk;
   }
 }
 function showResult(html){ $("#calcResult").innerHTML = html; }
 function renderCalc(){
   if(!calcRes){ showResult(""); return; }
+  if(calcRes.portion) return;
   if(calcRes.edit){ renderEditor(); return; }
   const {food, g, src, note} = calcRes, m = calc(food, g);
   showResult(`<div class="result">
     <div class="mealhead"><span class="nm">${esc(foodLabel(food))}</span><span class="src ${src==="ai"?"ai":""}">${esc(SRC_TAG[src]||src)}</span></div>
-    <div class="small">${macrosLine(m, g)}</div>
+    <div class="small">${macrosLine(m, g, food.pg, food.pgKnown)}</div>
     ${note ? `<div class="small muted">${esc(note)}</div>` : ""}
-    <div class="small muted">100 q: ${fmt(food.k)} kkal · P ${fmt(food.p,1)} · K ${fmt(food.c,1)} · Y ${fmt(food.f,1)}</div>
+    <div class="small muted">${food.pg ? (() => { const one = calc(food, food.pg); return `1 porsiya: ${fmt(one.kcal)} kkal · P ${fmt(one.p,1)} · K ${fmt(one.c,1)} · Y ${fmt(one.fat,1)}`; })() : `100 q: ${fmt(food.k)} kkal · P ${fmt(food.p,1)} · K ${fmt(food.c,1)} · Y ${fmt(food.f,1)}`}</div>
     ${src==="ai" ? `<div class="small muted">Dəqiq rəqəm üçün etiketin şəklini çək və ya “Düzəlt” bas.</div>` : ""}
     <div class="row"><button class="btn small" type="button" id="toDraft">+ Yeməyə əlavə et</button><button class="btn ghost small" type="button" id="toLog">Ayrıca gündəliyə yaz</button><button class="btn ghost small" type="button" id="toEdit">Düzəlt</button></div>
   </div>`);
-  $("#toEdit").onclick = () => { calcRes.edit = true; renderCalc(); };
+  $("#toEdit").onclick = () => { if(food.pg){ openPortionEditor(food, g / food.pg, src); return; } calcRes.edit = true; renderCalc(); };
   $("#toDraft").onclick = () => { draft.push(entryFrom(food, g)); cacheAiFood(food, src); calcRes = null; renderCalc(); renderDraft(); resetInputs(); toast("Yeməyə əlavə olundu"); };
   $("#toLog").onclick = () => { addEntries([entryFrom(food, g)], $("#mealSelect").value, null); cacheAiFood(food, src); calcRes = null; renderCalc(); resetInputs(); toast("Gündəliyə yazıldı"); };
 }
@@ -740,7 +766,7 @@ function saveOwnFood(vals, src, prev){
   const rec = Object.assign({id: target ? target.id : (src === "label" ? "lbl_" : "own_") + uid()}, vals, {src});
   state.profile.customFoods = target ? list.map(f => f.id === target.id ? rec : f) : [rec].concat(list);
   persistProfile(); fillFoodList(); renderProfile();
-  return {id: rec.id, name: rec.name, it: rec.it, cat: SRC_CAT[src], src, k: rec.k, p: rec.p, c: rec.c, f: rec.f, hint: ""};
+  return {id: rec.id, name: rec.name, it: rec.it, cat: rec.pg ? "Restoran porsiyası" : SRC_CAT[src], src, k: rec.k, p: rec.p, c: rec.c, f: rec.f, pg: rec.pg || 0, pgKnown: rec.pgKnown, hint: rec.pg ? "1 porsiya" : ""};
 }
 async function readLabel(file){
   if(!file || !sampleFn) return;
@@ -770,8 +796,102 @@ If the photo does not show a readable nutrition table, reply {"error": "short Az
   }
 }
 $("#photoInput").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; readLabel(f); });
+/* ---------- restaurant portions ---------- */
+let mode = "g";
+function setMode(m){
+  mode = m;
+  $("#modeSeg").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+  $("#portionBox").hidden = m !== "p";
+  $("#calcForm").hidden = m === "p";
+  if(m === "p") $("#photoRow").hidden = true; else if(photoOk) $("#photoRow").hidden = false;
+  $("#modeHelp").textContent = m === "p"
+    ? "Restoranda qramı bilmirsən? Yeməyi yaz və ölçünü seç: AI bütün porsiyanı hesablayacaq. Və ya rəqəmləri özün yaz."
+    : "Məhsulu və qramı yaz, “Hesabla” bas: kalori və makrolar aşağıda görünəcək. Məhsulları bir-bir əlavə et, sonra yeməyə ad ver və gündəliyə yaz.";
+  calcRes = null; renderCalc();
+}
+$("#modeSeg").querySelectorAll("button").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+function portionCount(){ const n = Number(String($("#pCount").value).replace(",", ".")); return n > 0 ? n : 1; }
+function openPortionEditor(food, count, src, note){
+  const one = food.pg ? calc(food, food.pg) : null;
+  const v = x => x === undefined || x === null || x === "" ? "" : String(Math.round(x * 10) / 10);
+  calcRes = {portion:true};
+  showResult(`<form class="result" id="pForm" autocomplete="off">
+    <div class="mealhead"><span class="nm">1 porsiyanın rəqəmləri</span><span class="src ${src==="ai"?"ai":""}">${esc(SRC_TAG[src]||src)}</span></div>
+    ${note ? `<div class="small muted">${esc(note)}</div>` : ""}
+    <div class="addform">
+      <div class="field full"><label class="label" for="qName">Ad</label><input id="qName" value="${esc(food.name||"")}" placeholder="məs. Cheeseburger menyu (McDonald's)"></div>
+      <div class="field"><label class="label" for="qK">kkal</label><input class="num" id="qK" type="number" step="1" min="0" inputmode="decimal" value="${one ? v(one.kcal) : v(food.kcal)}"></div>
+      <div class="field"><label class="label" for="qP">Protein, q</label><input class="num" id="qP" type="number" step="0.1" min="0" inputmode="decimal" value="${one ? v(one.p) : v(food.p)}"></div>
+      <div class="field"><label class="label" for="qC">Karbohidrat, q</label><input class="num" id="qC" type="number" step="0.1" min="0" inputmode="decimal" value="${one ? v(one.c) : v(food.c)}"></div>
+      <div class="field"><label class="label" for="qF">Yağ, q</label><input class="num" id="qF" type="number" step="0.1" min="0" inputmode="decimal" value="${one ? v(one.fat) : v(food.f)}"></div>
+      <div class="field"><label class="label" for="qG">≈ Çəki, q (bilmirsənsə boş qoy)</label><input class="num" id="qG" type="number" step="1" min="0" inputmode="decimal" value="${food.pgKnown === false ? "" : v(food.pg || food.grams)}"></div>
+      <div class="field"><label class="label" for="qN">Neçə porsiya</label><input class="num" id="qN" type="number" step="0.5" min="0.5" inputmode="decimal" value="${v(count || 1)}"></div>
+    </div>
+    <label class="small row" style="gap:6px"><input type="checkbox" id="qSave" checked> Yadda saxla: növbəti dəfə adını yazanda AI-siz çıxacaq</label>
+    <div class="row"><button class="btn small" type="button" id="qDraft">+ Yeməyə əlavə et</button><button class="btn ghost small" type="button" id="qLog">Gündəliyə yaz</button><button class="btn ghost small" type="button" id="qCancel">Ləğv et</button></div>
+  </form>`);
+  const prevId = food.id && food.pg ? food.id : null;
+  const collect = () => {
+    const n = id => Number(String($(id).value).replace(",", "."));
+    const name = $("#qName").value.trim(), kc = n("#qK");
+    if(!name || $("#qK").value === "" || !(kc >= 0)){ toast("Ad və kkal mütləqdir"); return null; }
+    const gKnown = n("#qG") > 0, pg = gKnown ? Math.round(n("#qG")) : 100, f100 = x => +((x || 0) * 100 / pg).toFixed(2);
+    const rec = {name: name.slice(0,80), it: "", k: f100(kc), p: f100(n("#qP")), c: f100(n("#qC")), f: f100(n("#qF")), pg, pgKnown: gKnown};
+    let food2;
+    if($("#qSave").checked){
+      food2 = saveOwnFood(rec, src === "ai" ? "ai" : "manual", prevId ? {id: prevId} : null);
+    } else {
+      food2 = Object.assign({id: "tmp_" + uid(), cat: "Restoran porsiyası", src}, rec);
+    }
+    const cnt = n("#qN") > 0 ? n("#qN") : 1;
+    return {food: food2, g: Math.round(cnt * pg)};
+  };
+  $("#qCancel").onclick = () => { calcRes = null; renderCalc(); };
+  $("#qDraft").onclick = () => { const r = collect(); if(!r) return; draft.push(entryFrom(r.food, r.g)); calcRes = null; renderCalc(); renderDraft(); $("#pName").value = ""; toast("Yeməyə əlavə olundu"); };
+  $("#qLog").onclick = () => { const r = collect(); if(!r) return; addEntries([entryFrom(r.food, r.g)], $("#mealSelect").value, null); calcRes = null; renderCalc(); $("#pName").value = ""; toast("Gündəliyə yazıldı"); };
+}
+async function askPortion(text, size, file){
+  if(!sampleFn){ toast("AI yalnız claude.ai-dakı səhifədə işləyir"); return; }
+  aiCtl && aiCtl.abort(); aiCtl = new AbortController();
+  const btn = $("#pAi"); btn.disabled = true; btn.textContent = "Hesablanır…";
+  showResult(`<div class="result"><span class="small muted">AI porsiyanı hesablayır… ${file ? "(şəkil ilə 10–40 saniyə)" : ""}</span></div>`);
+  const prompt = `You are a nutrition assistant for a user in Bologna, Italy who writes in Azerbaijani.
+The user ate this at a restaurant/bar/fast-food place and does not know the weight: "${(text || "").slice(0,300)}".
+Portion size chosen by the user: ${size} (kiçik = small, orta = normal, böyük = large).${file ? "\nA photo of the plate is attached: use it to judge what is on the plate and how big it is." : ""}
+Estimate the TOTAL for ONE such serving as served (include bread, sauces, cooking oil/butter, cheese, fries, and drinks if they are mentioned or visible).
+For well-known chains (McDonald's, Burger King, KFC, Old Wild West, Roadhouse, etc.) use their published nutrition values for Italy if you know them.
+Otherwise use a typical Italian restaurant portion.
+Reply with only JSON: {"name_az": "short Azerbaijani name of the dish", "grams_est": number, "kcal": number, "protein": number, "carbs": number, "fat": number, "note": "one short Azerbaijani sentence: what you assumed"}`;
+  try{
+    const r = await sampleFn.json(prompt, file ? {images:[file], modelTier:"default", signal: aiCtl.signal} : {modelTier:"default", signal: aiCtl.signal});
+    const num = x => { const n = Number(x); return isFinite(n) && n >= 0 ? n : NaN; };
+    const k = num(r && r.kcal), p = num(r.protein), c = num(r.carbs), f = num(r.fat);
+    if([k,p,c,f].some(isNaN) || k > 6000) throw {code:"invalid_json"};
+    const gEst = num(r.grams_est);
+    openPortionEditor({name: String(r.name_az || text || "Restoran yeməyi").slice(0,60) + (size !== "orta" ? ` (${size})` : ""), kcal:k, p, c, f, grams: gEst > 0 ? gEst : ""},
+      portionCount(), "ai", (String(r.note || "").slice(0,200) + " Rəqəmlər təxminidir: bilirsənsə düzəlt.").trim());
+  }catch(e){
+    if(e && e.code === "cancelled") return;
+    if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sampleFn = null; setAiState(); }
+    if(e && e.code === "images_unavailable") $("#pPhotoBtn").hidden = true;
+    showResult(`<div class="result"><span class="small">${esc(AI_ERR[e && e.code] || "Hesablama alınmadı. Yenidən cəhd et və ya “Özüm yazacam” bas.")}</span></div>`);
+  }finally{ btn.disabled = false; btn.textContent = "AI ilə təxmin et"; }
+}
+$("#pAi").onclick = () => {
+  const text = $("#pName").value.trim();
+  if(!text){ toast("Nə yediyini yaz"); $("#pName").focus(); return; }
+  const saved = fuzzyFood(text);
+  if(saved && saved.pg){ const n = portionCount(); calcRes = {food:saved, g: Math.round(saved.pg * n), src: saved.src, note:"Yadda saxladığın porsiya."}; renderCalc(); return; }
+  askPortion(text, $("#pSize").value, null);
+};
+$("#pPhoto").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if(f) askPortion($("#pName").value.trim() || "the dish in the photo", $("#pSize").value, f); });
+$("#pManual").onclick = () => openPortionEditor({name: $("#pName").value.trim()}, portionCount(), "manual", "Restoranın saytında və ya menyuda kalori yazılıbsa, onu yaz. Yoxdursa, AI-dən soruş.");
 function resetInputs(){ $("#foodInput").value = ""; $("#gramInput").value = ""; $("#foodInput").focus(); }
-function entryFrom(food, g){ return {f:food.id, name:food.name, it:food.it||"", g:Math.round(g), k:food.k, p:food.p, c:food.c, fat100:food.f}; }
+function entryFrom(food, g){
+  const e = {f:food.id, name:food.name, it:food.it||"", g:Math.round(g), k:food.k, p:food.p, c:food.c, fat100:food.f};
+  if(food.pg){ e.pg = food.pg; if(food.pgKnown === false) e.pgKnown = false; }
+  return e;
+}
 function cacheAiFood(food, src){
   if(src !== "ai") return;
   const list = state.profile.customFoods || [];
@@ -822,8 +942,9 @@ $("#calcForm").addEventListener("submit", e => {
   const name = g && pe.g === g ? pe.name : raw;
   const f = fuzzyFood(name) || fuzzyFood(raw);
   if(f){
+    if(!g && f.pg) g = f.pg;
     if(!g){ toast("Qramı yaz" + (f.hint ? " · " + f.hint : "")); $("#gramInput").focus(); return; }
-    calcRes = {food:f, g, src:f.src||"baza", note:f.hint||""}; renderCalc(); return;
+    calcRes = {food:f, g, src:f.src||"baza", note:f.pg ? "" : (f.hint||"")}; renderCalc(); return;
   }
   if(sampleFn){ askAi(name, g); return; }
   calcRes = null;
@@ -838,10 +959,11 @@ function renderDraft(){
   let tot = {kcal:0,p:0,c:0,fat:0};
   $("#draftList").innerHTML = draft.map((it, i) => {
     const m = draftMacros(it); Object.keys(tot).forEach(k => tot[k] += m[k]);
-    return `<li><span class="nm">${esc(itemLabel(it))}<br><span class="small muted num">${fmt(m.kcal)} kkal · P ${fmt(m.p,1)}</span></span><input class="num" type="number" min="1" inputmode="decimal" value="${it.g}" data-dg="${i}" aria-label="Qram"><button class="del" data-dx="${i}" aria-label="Sil">×</button></li>`;
+    const val = it.pg ? +(it.g / it.pg).toFixed(1) : it.g;
+    return `<li><span class="nm">${esc(itemLabel(it))}<br><span class="small muted num">${it.pg ? "porsiya · " : ""}${fmt(m.kcal)} kkal · P ${fmt(m.p,1)}</span></span><input class="num" type="number" min="${it.pg ? 0.5 : 1}" step="${it.pg ? 0.5 : 1}" inputmode="decimal" value="${val}" data-dg="${i}" aria-label="${it.pg ? "Porsiya" : "Qram"}"><button class="del" data-dx="${i}" aria-label="Sil">×</button></li>`;
   }).join("");
   $("#draftTot").innerHTML = `<span>Cəmi</span><span>${fmt(tot.kcal)} kkal · P ${fmt(tot.p)} · K ${fmt(tot.c)} · Y ${fmt(tot.fat)}</span>`;
-  $("#draftList").querySelectorAll("[data-dg]").forEach(inp => inp.onchange = () => { const v = Number(inp.value); if(v > 0){ draft[+inp.dataset.dg].g = Math.round(v); renderDraft(); } });
+  $("#draftList").querySelectorAll("[data-dg]").forEach(inp => inp.onchange = () => { const v = Number(inp.value), it = draft[+inp.dataset.dg]; if(v > 0){ it.g = Math.round(it.pg ? v * it.pg : v); renderDraft(); } });
   $("#draftList").querySelectorAll("[data-dx]").forEach(b => b.onclick = () => { draft.splice(+b.dataset.dx, 1); renderDraft(); });
   if(!$("#dishName").placeholder) $("#dishName").placeholder = "məs. Mənim səhər yeməyim";
 }
@@ -877,7 +999,7 @@ function addEntries(entries, meal, dish){
   mutateDay(d => {
     for(const it of entries){
       const m = draftMacros(it);
-      d.items.push({id:uid(), f:it.f, name:it.name, it:it.it||"", g:it.g,
+      d.items.push({id:uid(), f:it.f, name:it.name, it:it.it||"", g:it.g, ...(it.pg ? {pg:it.pg} : {}), ...(it.pgKnown === false ? {pgKnown:false} : {}),
         kcal:+m.kcal.toFixed(1), p:+m.p.toFixed(1), c:+m.c.toFixed(1), fat:+m.fat.toFixed(1), meal, dish: dish || null});
     }
   });
@@ -924,7 +1046,7 @@ function renderToday(){
       + (st ? `<span class="state ${st[0]}">${st[1]}</span>` : "");
   // log
   $("#logTotal").textContent = day.items.length ? `${fmt(t.kcal)} kkal · ${day.items.length} məhsul` : "";
-  const li = i => `<li><span class="nm">${esc(itemLabel(i))} <span class="muted num small">${fmt(i.g)} q</span></span><span class="num small">${fmt(i.kcal)} kkal · P ${fmt(i.p)}</span><button class="del" data-del="${esc(i.id)}" aria-label="Sil">×</button></li>`;
+  const li = i => `<li><span class="nm">${esc(itemLabel(i))} <span class="muted num small">${esc(qtyText(i))}</span></span><span class="num small">${fmt(i.kcal)} kkal · P ${fmt(i.p)}</span><button class="del" data-del="${esc(i.id)}" aria-label="Sil">×</button></li>`;
   $("#log").innerHTML = MEALS.map(m => {
     const its = day.items.filter(i => i.meal === m);
     const sum = its.reduce((a,i) => a+i.kcal, 0);
@@ -1110,7 +1232,7 @@ function renderProfile(){
    <tr><td>Yağ (kalorinin 25%-i)</td><td class="r">${fmt(r.f)}–${fmt(g.f)} q</td></tr>
    <tr><td>Karbohidrat</td><td class="r">${fmt(r.c)}–${fmt(g.c)} q</td></tr>
    <tr><td>Su</td><td class="r">2,5–3 l</td></tr></tbody>`;
-  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(foodLabel(f))}${f.src && f.src!=="manual" && f.src!=="own" ? ` <span class="src ${f.src==="ai"?"ai":""}">${esc(SRC_TAG[f.src]||f.src)}</span>` : ""}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
+  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(foodLabel(f))}${f.src && f.src!=="manual" && f.src!=="own" ? ` <span class="src ${f.src==="ai"?"ai":""}">${esc(SRC_TAG[f.src]||f.src)}</span>` : ""}</span><span class="num small">${f.pg ? `${fmt(f.k*f.pg/100)} kkal/porsiya · P ${fmt(f.p*f.pg/100,1)}` : `${fmt(f.k)} kkal · P ${fmt(f.p,1)}`}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
   $("#customList").querySelectorAll("[data-cdel]").forEach(b => b.onclick = () => { p.customFoods = p.customFoods.filter(f => f.id !== b.dataset.cdel); persistProfile(); renderAll(); });
 }
 $("#profileForm").addEventListener("submit", e => {
