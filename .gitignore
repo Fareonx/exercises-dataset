@@ -6,3 +6,4 @@ __pycache__/
 
 # Claude Code local settings (do not publish)
 .claude/
+.artifact-build/
