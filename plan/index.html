@@ -61,8 +61,46 @@ button{cursor:pointer}
 .sync{font-size:.75rem;color:var(--muted)}
 .tabs{display:flex;gap:4px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{border:0;background:none;padding:8px 12px 10px;border-bottom:3px solid transparent;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab{border:0;background:none;padding:8px 12px 10px;border-bottom:3px solid transparent;font-weight:600;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab svg{width:18px;height:18px;flex:none}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+/* phone: app-style bottom navigation */
+@media (max-width:760px){
+  .top{position:static}
+  .top .wrap{padding-block:10px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;margin:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;
+    background:var(--surface);border-top:1px solid var(--line);padding:4px 2px calc(4px + env(safe-area-inset-bottom,0px))}
+  .tab{flex-direction:column;gap:2px;padding:6px 0;border-bottom:0;font-size:.68rem;font-weight:600;border-radius:8px}
+  .tab svg{width:22px;height:22px}
+  .tab[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+  main.wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .field input,.field select,input,select{font-size:16px}
+  .btn{padding:12px 16px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+.banner{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--accent-soft);border-radius:var(--r);padding:10px 14px;font-size:.9rem}
+.banner .row{flex-wrap:nowrap}
+
+/* meal builder */
+.builder-row{display:grid;grid-template-columns:1fr 92px auto;gap:8px;align-items:end}
+@media (max-width:420px){.builder-row{grid-template-columns:1fr 84px}.builder-row .btn{grid-column:1/-1}}
+.result{border:1px dashed var(--accent);border-radius:8px;padding:10px 12px;display:grid;gap:6px;background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.result .nm{font-weight:600}
+.src{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--sunken);color:var(--muted)}
+.src.ai{background:var(--ball-soft);color:var(--ink)}
+.draft{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.draft li{display:grid;grid-template-columns:1fr 78px auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.draft li .nm{min-width:0;overflow-wrap:anywhere}
+.draft li input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 8px;text-align:right}
+.drafttot{display:flex;justify-content:space-between;gap:8px;font-weight:600;padding-top:4px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.mealchip{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--surface);overflow:hidden}
+.mealchip button{border:0;background:none;padding:7px 10px;font-size:.85rem;font-weight:600}
+.mealchip button.x{color:var(--muted);padding:7px 10px 7px 4px;font-weight:400}
+.sugg{display:flex;gap:6px;flex-wrap:wrap}
+.sugg button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;font-size:.85rem}
+.group{margin-top:4px;padding-left:10px;border-left:3px solid var(--accent-soft)}
+.group .gh{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.9rem;padding-top:4px}
 
 section.sheet{padding-top:20px;display:grid;gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
@@ -178,12 +216,12 @@ textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;bord
       <span class="sync" id="sync">Yüklənir…</span>
     </div>
     <nav class="tabs" role="tablist" id="tabs">
-      <button class="tab" role="tab" data-tab="bugun" aria-selected="true">Bu gün</button>
-      <button class="tab" role="tab" data-tab="analiz" aria-selected="false">Analiz</button>
-      <button class="tab" role="tab" data-tab="menyu" aria-selected="false">Menyu</button>
-      <button class="tab" role="tab" data-tab="mesq" aria-selected="false">Məşq</button>
-      <button class="tab" role="tab" data-tab="bolonya" aria-selected="false">Bolonya</button>
-      <button class="tab" role="tab" data-tab="profil" aria-selected="false">Profil</button>
+      <button class="tab" role="tab" data-tab="bugun" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Bu gün</span></button>
+      <button class="tab" role="tab" data-tab="analiz" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Analiz</span></button>
+      <button class="tab" role="tab" data-tab="menyu" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v8a2 2 0 0 0 2 2v8M7 3v6M11 3v6M17 3c-2 2-2 6 0 8v10"/></svg><span>Menyu</span></button>
+      <button class="tab" role="tab" data-tab="mesq" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg><span>Məşq</span></button>
+      <button class="tab" role="tab" data-tab="bolonya" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg><span>Bolonya</span></button>
+      <button class="tab" role="tab" data-tab="profil" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Profil</span></button>
     </nav>
   </div>
 </header>
@@ -192,6 +230,10 @@ textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;bord
 
 <!-- BU GÜN -->
 <section class="sheet" id="sheet-bugun">
+  <div class="banner" id="homeBanner" hidden>
+    <span><b>Telefonda tətbiq kimi aç:</b> <span id="homeHow"></span></span>
+    <button class="del" id="homeClose" aria-label="Bağla">×</button>
+  </div>
   <div class="card" style="display:grid;gap:12px">
     <div class="daybar">
       <button class="iconbtn" id="prevDay" aria-label="Əvvəlki gün">‹</button>
@@ -222,25 +264,36 @@ textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;bord
         <div class="left" id="leftText"></div>
       </div>
 
-      <div class="card">
-        <h3 style="margin-bottom:10px">Yediyini əlavə et</h3>
-        <form class="addform" id="addForm" autocomplete="off">
-          <div class="field full">
+      <div class="card" style="display:grid;gap:12px" id="builderCard">
+        <div class="mealhead"><h3>Yemək qur</h3><span class="small muted" id="aiState"></span></div>
+        <p class="small muted" style="margin:0">Məhsulu və qramı yaz, “Hesabla” bas: kalori və makrolar aşağıda görünəcək. Məhsulları bir-bir əlavə et, sonra yeməyə ad ver və gündəliyə yaz.</p>
+        <form id="calcForm" class="builder-row" autocomplete="off">
+          <div class="field" style="min-width:0">
             <label class="label" for="foodInput">Məhsul</label>
-            <input id="foodInput" list="foodList" placeholder="məs. yulaf, toyuq, yogurt greco…">
+            <input id="foodInput" list="foodList" placeholder="məs. yulaf, toyuq, 2 yumurta, Esselunga skyr…" enterkeyhint="next">
             <datalist id="foodList"></datalist>
           </div>
           <div class="field">
             <label class="label" for="gramInput">Qram</label>
-            <input class="num" id="gramInput" type="number" min="1" max="3000" step="1" inputmode="decimal" placeholder="100">
+            <input class="num" id="gramInput" type="number" min="1" max="3000" step="1" inputmode="decimal" placeholder="100" enterkeyhint="go">
           </div>
-          <div class="field">
-            <label class="label" for="mealSelect">Yemək</label>
-            <select id="mealSelect"></select>
-          </div>
-          <div class="preview full" id="addPreview"></div>
-          <div class="full row"><button class="btn" type="submit">Əlavə et</button><span class="small muted" id="hint"></span></div>
+          <button class="btn" type="submit" id="calcBtn">Hesabla</button>
         </form>
+        <div id="calcResult" aria-live="polite"></div>
+        <div id="draftBox" hidden style="display:grid;gap:10px">
+          <div class="label">Yeməyin tərkibi</div>
+          <ul class="draft" id="draftList"></ul>
+          <div class="drafttot num" id="draftTot"></div>
+          <div class="addform">
+            <div class="field full"><label class="label" for="dishName">Yeməyin adı</label><input id="dishName" placeholder="məs. Mənim səhər yeməyim"></div>
+            <div class="field full"><label class="label" for="mealSelect">Hansı yemək</label><select id="mealSelect"></select></div>
+          </div>
+          <div class="row"><button class="btn" type="button" id="saveDish">Gündəliyə yaz və yadda saxla</button><button class="btn ghost small" type="button" id="clearDraft">Təmizlə</button></div>
+        </div>
+        <div id="dishBox" style="display:grid;gap:6px">
+          <div class="label">Mənim yeməklərim</div>
+          <div class="chips" id="dishChips"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -415,7 +468,7 @@ const MEALS = PLAN.meals;
 
 /* ---------- state ---------- */
 const state = {
-  profile: Object.assign({}, PLAN.profile, {customFoods: []}),
+  profile: Object.assign({}, PLAN.profile, {customFoods:[], dishes:[]}),
   days: {},           // date -> day doc
   cur: isoDate(new Date()),
   mode: "none",       // "db" | "local" | "none"
@@ -432,7 +485,7 @@ function getDay(s){
 /* ---------- foods ---------- */
 function allFoods(){
   const base = PLAN.foods.map(f => ({id:f.id, name:f.name, it:f.it, cat:f.cat, k:f.k, p:f.p, c:f.c, f:f.f, hint:f.hint}));
-  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:"", cat:"Öz məhsulum", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
+  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:f.it||"", cat:f.src==="ai"?"AI ilə hesablanıb":"Öz məhsulum", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
   return base.concat(custom);
 }
 function foodById(id){ return allFoods().find(f => f.id === id); }
@@ -514,7 +567,7 @@ async function initStorage(){
     setSync("Hesabında saxlanılır");
     $("#storageNote").textContent = "Gündəliyin claude.ai hesabında saxlanılır: telefondan da, kompüterdən də eyni məlumatı görürsən. Claude-dan “gündəliyimi analiz et” deyə xahiş edə bilərsən.";
     db.doc("settings/profile").onSnapshot(snap => {
-      if(snap.exists && !pending.has("settings/profile")){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, snap.data()); renderAll(); }
+      if(snap.exists && !pending.has("settings/profile")){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[], dishes:[]}, snap.data()); renderAll(); }
     }, () => setSync("Bağlantı kəsildi"));
     db.collection("days").onSnapshot(snap => {
       const next = {};
@@ -529,7 +582,7 @@ async function initStorage(){
   let lsOk = true; try{ localStorage.setItem(LS_KEY+"-t","1"); localStorage.removeItem(LS_KEY+"-t"); }catch(e){ lsOk = false; }
   if(lsOk){
     state.mode = "local";
-    if(saved){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, saved.profile||{}); state.days = saved.days||{}; }
+    if(saved){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[], dishes:[]}, saved.profile||{}); state.days = saved.days||{}; }
     setSync("Bu cihazda saxlanılır");
     $("#storageNote").textContent = "Məlumatlar bu brauzerdə saxlanılır. Başqa cihaza keçmək və ya ehtiyat üçün aşağıdakı JSON mətnini kopyala.";
   } else {
@@ -561,6 +614,7 @@ function showTab(name){
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
   document.querySelectorAll("section.sheet").forEach(s => s.hidden = s.id !== "sheet-"+name);
   try{ localStorage.setItem(LS_KEY+"-tab", name); }catch(e){}
+  if(window.scrollY > 0) window.scrollTo(0, 0);
   if(name === "analiz") renderAnalysis();
 }
 
@@ -589,38 +643,164 @@ function fillMealSelect(){
 function fillFoodList(){
   $("#foodList").innerHTML = allFoods().map(f => `<option value="${esc(foodLabel(f))}"></option>`).join("");
 }
-function updatePreview(){
-  const f = findFood($("#foodInput").value), g = Number($("#gramInput").value);
-  const pv = $("#addPreview"), hint = $("#hint");
-  hint.textContent = f && f.hint ? f.hint : "";
-  if(!f){ pv.textContent = $("#foodInput").value.trim() ? "Siyahıdan məhsul seç və ya Profil bölməsində öz məhsulunu əlavə et." : ""; return; }
-  if(!g){ pv.textContent = `100 q: ${fmt(f.k)} kkal · P ${fmt(f.p,1)} · K ${fmt(f.c,1)} · Y ${fmt(f.f,1)}`; return; }
-  const m = calc(f,g);
-  pv.textContent = `${fmt(g)} q = ${fmt(m.kcal)} kkal · P ${fmt(m.p,1)} q · K ${fmt(m.c,1)} q · Y ${fmt(m.fat,1)} q`;
+
+/* ---------- meal builder ---------- */
+let sampleFn = null, aiCtl = null, calcRes = null, draft = [];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function itemLabel(i){ const it = i.it || (foodById(i.f)||{}).it || ""; return it ? `${i.name} (${it})` : i.name; }
+function macrosLine(m, g){ return `${fmt(g)} q · <b class="num">${fmt(m.kcal)} kkal</b> · P ${fmt(m.p,1)} · K ${fmt(m.c,1)} · Y ${fmt(m.fat,1)}`; }
+function parseEntry(text){
+  let t = text.trim(), g = null, mm;
+  if((mm = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:q|qr|qram|g|gr|gram|grams)\s+(.+)$/i))){ g = parseFloat(mm[1].replace(",", ".")); t = mm[2]; }
+  else if((mm = t.match(/^(.+?)[\s,]+(\d+(?:[.,]\d+)?)\s*(?:q|qr|qram|g|gr|gram|grams)?$/i))){ g = parseFloat(mm[2].replace(",", ".")); t = mm[1]; }
+  return {name: t.trim(), g};
 }
-$("#foodInput").addEventListener("input", updatePreview);
-$("#gramInput").addEventListener("input", updatePreview);
-$("#addForm").addEventListener("submit", e => {
+function fuzzyFood(text){
+  const exact = findFood(text); if(exact) return exact;
+  const t = text.trim().toLowerCase(); if(t.length < 3) return null;
+  const list = allFoods();
+  return list.find(f => f.name.toLowerCase().startsWith(t) || (f.it||"").toLowerCase().startsWith(t)) || null;
+}
+function setAiState(){
+  $("#aiState").textContent = sampleFn ? "AI hesablayır" : "yalnız baza";
+}
+async function initSample(){
+  if(window.claude && typeof window.claude.use === "function"){
+    try{ sampleFn = await window.claude.use("sample"); }catch(e){ sampleFn = null; }
+  }
+  setAiState();
+}
+function showResult(html){ $("#calcResult").innerHTML = html; }
+function renderCalc(){
+  if(!calcRes){ showResult(""); return; }
+  const {food, g, src, note} = calcRes, m = calc(food, g);
+  showResult(`<div class="result">
+    <div class="mealhead"><span class="nm">${esc(foodLabel(food))}</span><span class="src ${src==="ai"?"ai":""}">${src==="ai"?"AI · təxmini":"baza"}</span></div>
+    <div class="small">${macrosLine(m, g)}</div>
+    ${note ? `<div class="small muted">${esc(note)}</div>` : ""}
+    <div class="small muted">100 q: ${fmt(food.k)} kkal · P ${fmt(food.p,1)} · K ${fmt(food.c,1)} · Y ${fmt(food.f,1)}</div>
+    <div class="row"><button class="btn small" type="button" id="toDraft">+ Yeməyə əlavə et</button><button class="btn ghost small" type="button" id="toLog">Ayrıca gündəliyə yaz</button></div>
+  </div>`);
+  $("#toDraft").onclick = () => { draft.push(entryFrom(food, g)); cacheAiFood(food, src); calcRes = null; renderCalc(); renderDraft(); resetInputs(); toast("Yeməyə əlavə olundu"); };
+  $("#toLog").onclick = () => { addEntries([entryFrom(food, g)], $("#mealSelect").value, null); cacheAiFood(food, src); calcRes = null; renderCalc(); resetInputs(); toast("Gündəliyə yazıldı"); };
+}
+function resetInputs(){ $("#foodInput").value = ""; $("#gramInput").value = ""; $("#foodInput").focus(); }
+function entryFrom(food, g){ return {f:food.id, name:food.name, it:food.it||"", g:Math.round(g), k:food.k, p:food.p, c:food.c, fat100:food.f}; }
+function cacheAiFood(food, src){
+  if(src !== "ai") return;
+  const list = state.profile.customFoods || [];
+  if(list.some(f => f.id === food.id)) return;
+  state.profile.customFoods = list.concat([{id:food.id, name:food.name, it:food.it||"", k:food.k, p:food.p, c:food.c, f:food.f, src:"ai"}]);
+  persistProfile(); fillFoodList();
+}
+const AI_ERR = {
+  not_granted: "AI-yə icazə verilmədi. Məhsulu bazadan seç və ya Profil bölməsində öz məhsulunu əlavə et.",
+  sampling_disabled: "AI bu hesabda əlçatan deyil. Bazadan seç.",
+  rate_limited: "Çox sorğu oldu. Bir az sonra yenidən yoxla.",
+  session_expired: "claude.ai-a yenidən daxil ol.",
+  refused: "AI bu məhsulu hesablamadı. Adı başqa cür yaz.",
+  invalid_json: "AI cavabı oxunmadı. Yenidən “Hesabla” bas.",
+};
+async function askAi(name, g){
+  aiCtl && aiCtl.abort(); aiCtl = new AbortController();
+  const btn = $("#calcBtn"); btn.disabled = true; btn.textContent = "Hesablanır…";
+  showResult(`<div class="result"><span class="small muted">AI “${esc(name)}” üçün hesablayır…</span></div>`);
+  const prompt = `You are a nutrition assistant for a user who lives in Bologna, Italy and writes in Azerbaijani.
+Estimate the nutrition of this food item: "${name.slice(0,200)}".
+Grams given by the user: ${g ? g : "none — if the text names a count (e.g. \"2 yumurta\") convert it to grams, otherwise use one typical portion"}.
+Use typical Italian supermarket label values or CREA/USDA tables. Values are per 100 g of the food as eaten (if it is a dish, the cooked dish).
+Reply with only JSON: {"name_az": "short Azerbaijani name", "name_it": "Italian name as on Italian labels", "grams": number, "kcal100": number, "protein100": number, "carbs100": number, "fat100": number, "note": "one short Azerbaijani sentence about assumptions (raw/cooked, brand type)"}`;
+  try{
+    const r = await sampleFn.json(prompt, {modelTier:"quick", signal: aiCtl.signal});
+    const num = v => { const n = Number(v); return isFinite(n) && n >= 0 ? n : NaN; };
+    const k = num(r && r.kcal100), p = num(r.protein100), c = num(r.carbs100), f = num(r.fat100);
+    const gg = g || num(r.grams);
+    if([k,p,c,f].some(isNaN) || k > 950 || !(gg > 0)) throw {code:"invalid_json"};
+    const nm = String(r.name_az || name).slice(0,60), it = String(r.name_it || "").slice(0,60);
+    const id = "ai_" + (it || nm).toLowerCase().replace(/[^a-z0-9əğıöüşç]+/gi,"-").slice(0,40);
+    calcRes = {food:{id, name:nm, it, cat:"AI", k:+k.toFixed(0), p:+p.toFixed(1), c:+c.toFixed(1), f:+f.toFixed(1)}, g:gg, src:"ai", note:String(r.note||"").slice(0,160)};
+    renderCalc();
+  }catch(e){
+    if(e && e.code === "cancelled") return;
+    if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sampleFn = null; setAiState(); }
+    showResult(`<div class="result"><span class="small">${esc(AI_ERR[e && e.code] || "Hesablama alınmadı. Yenidən cəhd et.")}</span></div>`);
+  }finally{ btn.disabled = false; btn.textContent = "Hesabla"; }
+}
+$("#calcForm").addEventListener("submit", e => {
   e.preventDefault();
-  const f = findFood($("#foodInput").value), g = Number($("#gramInput").value);
-  if(!f){ toast("Məhsulu siyahıdan seç"); return; }
-  if(!(g > 0)){ toast("Qramı yaz"); return; }
-  addItems([{f:f.id, g}], $("#mealSelect").value);
-  $("#foodInput").value = ""; $("#gramInput").value = ""; updatePreview();
-  toast(`${f.name} əlavə olundu`);
-  $("#foodInput").focus();
+  const raw = $("#foodInput").value.trim();
+  if(!raw){ toast("Məhsulu yaz"); return; }
+  let g = Number($("#gramInput").value) || null;
+  const pe = parseEntry(raw);
+  if(!g && pe.g) g = pe.g;
+  const name = g && pe.g === g ? pe.name : raw;
+  const f = fuzzyFood(name) || fuzzyFood(raw);
+  if(f){
+    if(!g){ toast("Qramı yaz" + (f.hint ? " · " + f.hint : "")); $("#gramInput").focus(); return; }
+    calcRes = {food:f, g, src:"baza", note:f.hint||""}; renderCalc(); return;
+  }
+  if(sampleFn){ askAi(name, g); return; }
+  calcRes = null;
+  showResult(`<div class="result"><span class="small">“${esc(raw)}” bazada tapılmadı. AI hesablaması yalnız claude.ai-dakı səhifədə işləyir. Siyahıdan seç və ya Profil bölməsində öz məhsulunu əlavə et.</span></div>`);
 });
-function addItems(list, meal){
+$("#foodInput").addEventListener("change", () => { const f = findFood($("#foodInput").value); if(f && !$("#gramInput").value) $("#gramInput").focus(); });
+
+function draftMacros(it){ return calc({k:it.k, p:it.p, c:it.c, f:it.fat100}, it.g); }
+function renderDraft(){
+  $("#draftBox").hidden = !draft.length;
+  if(!draft.length) return;
+  let tot = {kcal:0,p:0,c:0,fat:0};
+  $("#draftList").innerHTML = draft.map((it, i) => {
+    const m = draftMacros(it); Object.keys(tot).forEach(k => tot[k] += m[k]);
+    return `<li><span class="nm">${esc(itemLabel(it))}<br><span class="small muted num">${fmt(m.kcal)} kkal · P ${fmt(m.p,1)}</span></span><input class="num" type="number" min="1" inputmode="decimal" value="${it.g}" data-dg="${i}" aria-label="Qram"><button class="del" data-dx="${i}" aria-label="Sil">×</button></li>`;
+  }).join("");
+  $("#draftTot").innerHTML = `<span>Cəmi</span><span>${fmt(tot.kcal)} kkal · P ${fmt(tot.p)} · K ${fmt(tot.c)} · Y ${fmt(tot.fat)}</span>`;
+  $("#draftList").querySelectorAll("[data-dg]").forEach(inp => inp.onchange = () => { const v = Number(inp.value); if(v > 0){ draft[+inp.dataset.dg].g = Math.round(v); renderDraft(); } });
+  $("#draftList").querySelectorAll("[data-dx]").forEach(b => b.onclick = () => { draft.splice(+b.dataset.dx, 1); renderDraft(); });
+  if(!$("#dishName").placeholder) $("#dishName").placeholder = "məs. Mənim səhər yeməyim";
+}
+$("#clearDraft").onclick = () => { draft = []; $("#dishName").value = ""; renderDraft(); };
+$("#saveDish").onclick = () => {
+  if(!draft.length) return;
+  const meal = $("#mealSelect").value;
+  const name = $("#dishName").value.trim() || meal;
+  addEntries(draft, meal, name);
+  const dishes = (state.profile.dishes || []).filter(d => d.name.toLowerCase() !== name.toLowerCase());
+  state.profile.dishes = [{id:uid(), name, items: draft.map(x => Object.assign({}, x))}].concat(dishes).slice(0, 40);
+  persistProfile();
+  draft = []; $("#dishName").value = ""; renderDraft(); renderDishes();
+  toast(`“${name}” gündəliyə yazıldı və yadda saxlanıldı`);
+};
+function renderDishes(){
+  const ds = state.profile.dishes || [];
+  $("#dishChips").innerHTML = ds.length ? ds.map(d => {
+    const kc = d.items.reduce((a,it) => a + draftMacros(it).kcal, 0);
+    return `<span class="mealchip"><button type="button" data-dish="${esc(d.id)}">${esc(d.name)} <span class="muted num">${fmt(kc)}</span></button><button type="button" class="x" data-dishx="${esc(d.id)}" aria-label="${esc(d.name)} sil">×</button></span>`;
+  }).join("") : `<span class="small muted">Hələ yoxdur. İlk yeməyini qur və yadda saxla: sonra bir toxunuşla təkrar əlavə edəcəksən.</span>`;
+  $("#dishChips").querySelectorAll("[data-dish]").forEach(b => b.onclick = () => {
+    const d = ds.find(x => x.id === b.dataset.dish); if(!d) return;
+    draft = draft.concat(d.items.map(x => Object.assign({}, x))); $("#dishName").value = d.name; renderDraft();
+    toast("Tərkib yükləndi: qramları yoxla və “Gündəliyə yaz” bas");
+  });
+  $("#dishChips").querySelectorAll("[data-dishx]").forEach(b => b.onclick = () => {
+    state.profile.dishes = ds.filter(x => x.id !== b.dataset.dishx); persistProfile(); renderDishes(); toast("Yemək silindi");
+  });
+}
+
+function addEntries(entries, meal, dish){
   mutateDay(d => {
-    for(const {f:fid, g} of list){
-      const f = foodById(fid); if(!f) continue;
-      const m = calc(f, g);
-      d.items.push({id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), f:fid, name:f.name, g,
-        kcal:+m.kcal.toFixed(1), p:+m.p.toFixed(1), c:+m.c.toFixed(1), fat:+m.fat.toFixed(1), meal});
+    for(const it of entries){
+      const m = draftMacros(it);
+      d.items.push({id:uid(), f:it.f, name:it.name, it:it.it||"", g:it.g,
+        kcal:+m.kcal.toFixed(1), p:+m.p.toFixed(1), c:+m.c.toFixed(1), fat:+m.fat.toFixed(1), meal, dish: dish || null});
     }
   });
 }
+function addItems(list, meal, dish){
+  addEntries(list.map(({f:fid, g}) => { const f = foodById(fid); return f ? entryFrom(f, g) : null; }).filter(Boolean), meal, dish);
+}
 function removeItem(id){ mutateDay(d => { d.items = d.items.filter(i => i.id !== id); }); }
+function removeDish(meal, dish){ mutateDay(d => { d.items = d.items.filter(i => !(i.meal === meal && i.dish === dish)); }); }
 
 $("#saveWeight").onclick = () => {
   const w = Number($("#weightInput").value);
@@ -658,13 +838,19 @@ function renderToday(){
       + (st ? `<span class="state ${st[0]}">${st[1]}</span>` : "");
   // log
   $("#logTotal").textContent = day.items.length ? `${fmt(t.kcal)} kkal · ${day.items.length} məhsul` : "";
+  const li = i => `<li><span class="nm">${esc(itemLabel(i))} <span class="muted num small">${fmt(i.g)} q</span></span><span class="num small">${fmt(i.kcal)} kkal · P ${fmt(i.p)}</span><button class="del" data-del="${esc(i.id)}" aria-label="Sil">×</button></li>`;
   $("#log").innerHTML = MEALS.map(m => {
     const its = day.items.filter(i => i.meal === m);
     const sum = its.reduce((a,i) => a+i.kcal, 0);
+    const loose = its.filter(i => !i.dish), groups = [];
+    its.filter(i => i.dish).forEach(i => { let gr = groups.find(x => x.name === i.dish); if(!gr) groups.push(gr = {name:i.dish, items:[]}); gr.items.push(i); });
+    const body = groups.map(gr => `<div class="group"><div class="gh"><span>${esc(gr.name)}</span><span class="row" style="gap:4px"><span class="num small">${fmt(gr.items.reduce((a,i)=>a+i.kcal,0))} kkal</span><button class="del" data-gdel="${esc(gr.name)}" data-gmeal="${esc(m)}" aria-label="${esc(gr.name)} sil">×</button></span></div><ul class="items">${gr.items.map(li).join("")}</ul></div>`).join("")
+      + (loose.length ? `<ul class="items">${loose.map(li).join("")}</ul>` : "");
     return `<div class="meal"><div class="mealhead"><span class="label">${esc(m)}</span><span class="num small muted">${its.length?fmt(sum)+" kkal":""}</span></div>
-      ${its.length ? `<ul class="items">${its.map(i => `<li><span class="nm">${esc(i.name)} <span class="muted num small">${fmt(i.g)} q</span></span><span class="num small">${fmt(i.kcal)} kkal · P ${fmt(i.p)}</span><button class="del" data-del="${esc(i.id)}" aria-label="Sil">×</button></li>`).join("")}</ul>` : `<div class="empty">—</div>`}</div>`;
+      ${its.length ? body : `<div class="empty">—</div>`}</div>`;
   }).join("");
   $("#log").querySelectorAll("[data-del]").forEach(b => b.onclick = () => removeItem(b.dataset.del));
+  $("#log").querySelectorAll("[data-gdel]").forEach(b => b.onclick = () => removeDish(b.dataset.gmeal, b.dataset.gdel));
   $("#weightInput").value = day.weight || "";
   // plan for this weekday
   const md = PLAN.menu[menuIndex(state.cur)];
@@ -674,11 +860,11 @@ function renderToday(){
   const timing = PLAN.timing.rest[1];
   $("#planList").innerHTML = md.meals.map((m, i) => {
     const kc = m.items.reduce((a,[fid,g]) => a + foodById(fid).k*g/100, 0);
-    return `<div class="planmeal"><span class="t">${timing[i][0]}</span><div class="what"><div><b>${esc(m.meal)}</b> · ${esc(m.title)}</div><div class="ing">${m.items.map(([fid,g]) => esc(foodById(fid).name)+" "+g+" q").join(", ")} · <span class="num">${fmt(kc)} kkal</span></div></div><button class="btn ghost small" data-plan="${i}">+ Əlavə</button></div>`;
+    return `<div class="planmeal"><span class="t">${timing[i][0]}</span><div class="what"><div><b>${esc(m.meal)}</b> · ${esc(m.title)}</div><div class="ing">${m.items.map(([fid,g]) => esc(foodLabel(foodById(fid)))+" "+g+" q").join(", ")} · <span class="num">${fmt(kc)} kkal</span></div></div><button class="btn ghost small" data-plan="${i}">+ Əlavə</button></div>`;
   }).join("") + (day.tennis && day.tennis.on ? `<div class="planmeal"><span class="t">tennis</span><div class="what"><div><b>Əlavə qəlyanaltı</b> · banan + 3 qalleta</div><div class="ing">oyundan 60–90 dəq əvvəl</div></div><button class="btn ghost small" data-tennis="1">+ Əlavə</button></div>` : "");
-  $("#planList").querySelectorAll("[data-plan]").forEach(b => b.onclick = () => { const m = md.meals[+b.dataset.plan]; addItems(m.items.map(([f,g]) => ({f,g})), m.meal); toast(m.meal+" əlavə olundu"); });
+  $("#planList").querySelectorAll("[data-plan]").forEach(b => b.onclick = () => { const m = md.meals[+b.dataset.plan]; addItems(m.items.map(([f,g]) => ({f,g})), m.meal, m.title); toast(m.meal+" əlavə olundu"); });
   const tb = $("#planList").querySelector("[data-tennis]");
-  if(tb) tb.onclick = () => { addItems([{f:"banan",g:120},{f:"gallette",g:24}], MEALS[3]); toast("Tennis qəlyanaltısı əlavə olundu"); };
+  if(tb) tb.onclick = () => { addItems([{f:"banan",g:120},{f:"gallette",g:24}], MEALS[3], "Tennis qəlyanaltısı"); toast("Tennis qəlyanaltısı əlavə olundu"); };
 }
 
 /* ---------- ANALYSIS ---------- */
@@ -785,7 +971,7 @@ function renderMenu(){
   let sum = {k:0,p:0,c:0,f:0};
   const body = md.meals.map((m,i) => {
     let s = {k:0,p:0,c:0,f:0};
-    const ing = m.items.map(([fid,g]) => { const f = foodById(fid); s.k+=f.k*g/100; s.p+=f.p*g/100; s.c+=f.c*g/100; s.f+=f.f*g/100; return `${esc(f.name)} <span class="num">${g} q</span>`; }).join(", ");
+    const ing = m.items.map(([fid,g]) => { const f = foodById(fid); s.k+=f.k*g/100; s.p+=f.p*g/100; s.c+=f.c*g/100; s.f+=f.f*g/100; return `${esc(foodLabel(f))} <span class="num">${g} q</span>`; }).join(", ");
     Object.keys(sum).forEach(k => sum[k]+=s[k]);
     return `<tr><td><b>${esc(m.meal)}</b><br><span class="small muted num">${PLAN.timing.rest[1][i][0]}</span></td><td>${esc(m.title)}<br><span class="small muted">${ing}</span></td><td class="r">${fmt(s.k)}</td><td class="r">${fmt(s.p)}</td><td class="r">${fmt(s.c)}</td><td class="r">${fmt(s.f)}</td></tr>`;
   }).join("");
@@ -838,7 +1024,7 @@ function renderProfile(){
    <tr><td>Yağ (kalorinin 25%-i)</td><td class="r">${fmt(r.f)}–${fmt(g.f)} q</td></tr>
    <tr><td>Karbohidrat</td><td class="r">${fmt(r.c)}–${fmt(g.c)} q</td></tr>
    <tr><td>Su</td><td class="r">2,5–3 l</td></tr></tbody>`;
-  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(f.name)}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
+  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(foodLabel(f))}${f.src==="ai"?' <span class="src ai">AI</span>':""}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
   $("#customList").querySelectorAll("[data-cdel]").forEach(b => b.onclick = () => { p.customFoods = p.customFoods.filter(f => f.id !== b.dataset.cdel); persistProfile(); renderAll(); });
 }
 $("#profileForm").addEventListener("submit", e => {
@@ -867,7 +1053,7 @@ $("#importBtn").onclick = async () => {
   try{
     const data = JSON.parse($("#backupText").value);
     if(!data || typeof data.days !== "object") throw 0;
-    state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, data.profile||{});
+    state.profile = Object.assign({}, PLAN.profile, {customFoods:[], dishes:[]}, data.profile||{});
     state.days = Object.assign({}, state.days, data.days);
     if(state.mode === "db"){ persistProfile(); for(const d of Object.keys(data.days)){ await doWrite("days/"+d, () => state.days[d]); } }
     else lsSave();
@@ -876,11 +1062,25 @@ $("#importBtn").onclick = async () => {
 };
 
 /* ---------- boot ---------- */
-function renderAll(){ fillFoodList(); renderToday(); renderMenu(); renderProfile(); if(!$("#sheet-analiz").hidden) renderAnalysis(); }
+function renderAll(){ fillFoodList(); renderToday(); renderDishes(); renderMenu(); renderProfile(); if(!$("#sheet-analiz").hidden) renderAnalysis(); }
 fillMealSelect();
 renderAll(); renderWorkout(); renderBologna();
 try{ const t = localStorage.getItem(LS_KEY+"-tab"); if(t && document.getElementById("sheet-"+t)) showTab(t); }catch(e){}
 initStorage();
+initSample();
+/* home-screen hint for phones */
+(function(){
+  let closed = false; try{ closed = localStorage.getItem(LS_KEY+"-home") === "1"; }catch(e){}
+  const phone = window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
+  const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
+  if(closed || !phone || standalone) return;
+  const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  $("#homeHow").textContent = ios
+    ? "Safari-də bu səhifənin linkini aç → Paylaş (⬆) → “Ana ekrana əlavə et”."
+    : "Chrome-da bu səhifənin linkini aç → ⋮ menyu → “Ana ekrana əlavə et”.";
+  $("#homeBanner").hidden = false;
+  $("#homeClose").onclick = () => { $("#homeBanner").hidden = true; try{ localStorage.setItem(LS_KEY+"-home","1"); }catch(e){} };
+})();
 })();
 </script>
 

@@ -14,6 +14,9 @@ os.makedirs(OUT_ART, exist_ok=True)
 
 ex_db = {e["id"]: e for e in json.load(open(os.path.join(REPO, "data/exercises.json"), encoding="utf-8"))}
 
+def lab(f):
+    return f"{f[1]} ({f[2]})"
+
 def fmt_qty(fid, g):
     if fid == "yumurta":
         n = round(g / 55)
@@ -177,11 +180,11 @@ def build_xlsx():
 
     # ---------------- Qida bazası
     ws = wb.create_sheet("Qida bazası")
-    header(ws, 1, ["Məhsul", "İtalyanca", "Qrup", "kkal / 100 q", "Protein, q", "Karbohidrat, q", "Yağ, q", "Porsiya"],
-           [34, 30, 16, 12, 11, 13, 9, 40])
+    header(ws, 1, ["Məhsul (italyanca)", "İtalyanca", "Qrup", "kkal / 100 q", "Protein, q", "Karbohidrat, q", "Yağ, q", "Porsiya"],
+           [48, 30, 16, 12, 11, 13, 9, 40])
     for i, f in enumerate(FOODS):
         r = 2 + i
-        for j, v in enumerate([f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8]], 1):
+        for j, v in enumerate([lab(f), f[2], f[3], f[4], f[5], f[6], f[7], f[8]], 1):
             ws.cell(row=r, column=j, value=v).font = N
     first_custom = 2 + len(FOODS)
     for r in range(first_custom, first_custom + 30):
@@ -194,7 +197,7 @@ def build_xlsx():
     # ---------------- Gündəlik
     ws = wb.create_sheet("Gündəlik")
     header(ws, 1, ["Tarix", "Yemək", "Məhsul", "Qram", "kkal", "Protein", "Karb.", "Yağ", "Qeyd"],
-           [12, 16, 36, 9, 9, 9, 9, 9, 30])
+           [12, 16, 46, 9, 9, 9, 9, 9, 30])
     ws.freeze_panes = "A2"
     dv_meal = DataValidation(type="list", formula1='"' + ",".join(MEALS) + '"', allow_blank=True)
     dv_food = DataValidation(type="list", formula1=f"='Qida bazası'!$A$2:$A${FOOD_LAST}", allow_blank=True)
@@ -204,7 +207,7 @@ def build_xlsx():
     fri = [d for d in MENU if d[0] == "Cümə"][0]
     ex = []
     for meal, title, items in fri[2]:
-        for fid, g in items: ex.append((START, meal, FOOD[fid][1], g))
+        for fid, g in items: ex.append((START, meal, lab(FOOD[fid]), g))
     rng = f"'Qida bazası'!$A$2:$A${FOOD_LAST}"
     for r in range(2, LOGROWS + 2):
         if r - 2 < len(ex):
@@ -293,7 +296,7 @@ def build_xlsx():
     # ---------------- Menyu
     ws = wb.create_sheet("Menyu")
     header(ws, 1, ["Gün", "Tip", "Yemək", "Saat", "Nə", "Məhsul", "Qram", "kkal", "Protein", "Karb.", "Yağ"],
-           [16, 10, 15, 7, 38, 30, 7, 8, 8, 8, 8])
+           [16, 10, 15, 7, 38, 44, 7, 8, 8, 8, 8])
     r = 2
     times = [t for t, _, _ in TIMING["rest"][1]]
     for day, typ, meals in MENU:
@@ -302,7 +305,7 @@ def build_xlsx():
             for ii, (fid, g) in enumerate(items):
                 f = FOOD[fid]
                 vals = [day if r == first else None, ("Zal" if typ == "gym" else "İstirahət") if r == first else None,
-                        meal if ii == 0 else None, times[mi] if ii == 0 else None, title if ii == 0 else None, f[1], g,
+                        meal if ii == 0 else None, times[mi] if ii == 0 else None, title if ii == 0 else None, lab(f), g,
                         f"=ROUND(G{r}*INDEX('Qida bazası'!$D:$D,MATCH(F{r},'Qida bazası'!$A:$A,0))/100,0)",
                         f"=ROUND(G{r}*INDEX('Qida bazası'!$E:$E,MATCH(F{r},'Qida bazası'!$A:$A,0))/100,1)",
                         f"=ROUND(G{r}*INDEX('Qida bazası'!$F:$F,MATCH(F{r},'Qida bazası'!$A:$A,0))/100,1)",
