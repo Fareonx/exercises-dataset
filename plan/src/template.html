@@ -1,0 +1,877 @@
+<title>Kütlə Planı · Bolonya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a training-log app — sticky day summary on top, tabbed sheets below; one column on phones, two on wide screens. */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --sunken:#e8ece6; --line:#d3d9d1;
+  --ink:#16201b; --muted:#5b6760;
+  --accent:#1d6b4c; --accent-ink:#ffffff; --accent-soft:#d9eadf;
+  --ball:#b9851a; --ball-soft:#f3e6c4;
+  --good:#1d7a4a; --warn:#b26b00; --bad:#b3362d;
+  --p:#2f6fb0; --c:#b9851a; --f:#9a4d8a;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#161e1a; --sunken:#1d2722; --line:#2b3730;
+  --ink:#e6ece8; --muted:#97a59d;
+  --accent:#4fb487; --accent-ink:#0b1410; --accent-soft:#1d3a2c;
+  --ball:#e0b24a; --ball-soft:#3a3018;
+  --good:#53c08a; --warn:#e3a243; --bad:#ec7a70;
+  --p:#7fb2ea; --c:#e0b24a; --f:#d18cc2; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#161e1a; --sunken:#1d2722; --line:#2b3730;
+  --ink:#e6ece8; --muted:#97a59d;
+  --accent:#4fb487; --accent-ink:#0b1410; --accent-soft:#1d3a2c;
+  --ball:#e0b24a; --ball-soft:#3a3018;
+  --good:#53c08a; --warn:#e3a243; --bad:#ec7a70;
+  --p:#7fb2ea; --c:#e0b24a; --f:#d18cc2; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--display);font-stretch:85%;line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:1.45rem;font-weight:800}
+h3{font-size:1.05rem;font-weight:700}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:12px 0}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-size:1.35rem;font-weight:800;letter-spacing:-.01em}
+.brand .who{font-size:.8rem;color:var(--muted)}
+.sync{font-size:.75rem;color:var(--muted)}
+.tabs{display:flex;gap:4px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;padding:8px 12px 10px;border-bottom:3px solid transparent;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+section.sheet{padding-top:20px;display:grid;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.grid2{display:grid;gap:18px;grid-template-columns:1fr}
+@media (min-width:860px){.grid2{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+
+/* day bar */
+.daybar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.daybar .date{font-family:var(--display);font-weight:800;font-size:1.25rem;font-stretch:85%;flex:1;min-width:160px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:36px;height:36px;display:grid;place-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:7px 12px;font-weight:600;font-size:.88rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--surface);font-weight:600;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--ball-soft);border-color:var(--ball);color:var(--ink)}
+.chip .dot{width:10px;height:10px;border-radius:50%;background:var(--ball)}
+.tennisopts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tennisopts input{width:72px}
+
+/* summary */
+.summary{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+@media (max-width:420px){.summary{grid-template-columns:1fr;justify-items:center}}
+.ring{width:132px;height:132px}
+.ring text{fill:var(--ink)}
+.macros{display:grid;gap:10px;width:100%;min-width:0}
+.mrow{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;font-size:.88rem}
+.bar{height:8px;background:var(--sunken);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.left{font-size:.95rem;margin-top:4px}
+.state{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
+.s-good{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.s-warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.s-bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+
+/* add form */
+.addform{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.addform .full{grid-column:1/-1}
+.field{display:grid;gap:4px;min-width:0}
+.field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+.preview{font-size:.85rem;color:var(--muted);min-height:1.3em}
+.btn{border:0;border-radius:8px;padding:10px 14px;background:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:6px 10px;font-size:.82rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* meal log */
+.meal{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.meal:first-child{border-top:0;margin-top:0;padding-top:0}
+.mealhead{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.items{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}
+.items li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:5px 0;font-size:.92rem}
+.items li .nm{min-width:0;overflow-wrap:anywhere}
+.del{border:0;background:none;color:var(--muted);font-size:1.1rem;line-height:1;padding:4px 6px;border-radius:6px}
+.del:hover{color:var(--bad);background:var(--sunken)}
+.empty{color:var(--muted);font-size:.88rem;padding:4px 0}
+
+/* plan list */
+.planmeal{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.planmeal:first-of-type{border-top:0}
+.planmeal .t{font-family:var(--mono);font-size:.85rem;color:var(--muted);padding-top:2px}
+.planmeal .what{min-width:0}
+.planmeal .ing{font-size:.82rem;color:var(--muted)}
+
+/* tables */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* charts */
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--sw)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--sunken);border-radius:8px;padding:10px 12px}
+.kpi b{display:block;font-family:var(--display);font-stretch:85%;font-size:1.4rem}
+.advice{border-left:4px solid var(--accent);padding:10px 14px;background:var(--accent-soft);border-radius:0 8px 8px 0}
+.advice.warn{border-left-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+
+/* workout */
+.ex{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.ex:first-of-type{border-top:0}
+.ex img{width:96px;height:96px;object-fit:cover;border-radius:8px;background:#fff;border:1px solid var(--line)}
+.ex .meta{display:flex;gap:10px;flex-wrap:wrap;font-size:.85rem}
+.ex .meta b{font-family:var(--mono);font-weight:500}
+ul.rules{margin:0;padding-left:1.1em;display:grid;gap:6px}
+.week{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.week div{background:var(--sunken);border-radius:8px;padding:8px 10px;font-size:.85rem}
+.week div b{display:block;font-size:.8rem}
+
+/* menu tab */
+.daysel{display:flex;gap:6px;flex-wrap:wrap}
+.daysel button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:600}
+.daysel button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tag{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:var(--sunken);color:var(--muted)}
+.tag.gym{background:var(--accent-soft);color:var(--accent)}
+.timing{display:grid;gap:4px}
+.timing div{display:grid;grid-template-columns:56px 1fr;gap:10px;font-size:.9rem}
+.timing .gymrow{font-weight:700;color:var(--accent)}
+
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.88rem;z-index:20;max-width:calc(100% - 32px)}
+details summary{cursor:pointer;font-weight:600}
+textarea{width:100%;min-height:90px;font-family:var(--mono);font-size:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Kütlə Planı · Bolonya</h1>
+      <span class="sync" id="sync">Yüklənir…</span>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-tab="bugun" aria-selected="true">Bu gün</button>
+      <button class="tab" role="tab" data-tab="analiz" aria-selected="false">Analiz</button>
+      <button class="tab" role="tab" data-tab="menyu" aria-selected="false">Menyu</button>
+      <button class="tab" role="tab" data-tab="mesq" aria-selected="false">Məşq</button>
+      <button class="tab" role="tab" data-tab="bolonya" aria-selected="false">Bolonya</button>
+      <button class="tab" role="tab" data-tab="profil" aria-selected="false">Profil</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- BU GÜN -->
+<section class="sheet" id="sheet-bugun">
+  <div class="card" style="display:grid;gap:12px">
+    <div class="daybar">
+      <button class="iconbtn" id="prevDay" aria-label="Əvvəlki gün">‹</button>
+      <div class="date" id="dateLabel">—</div>
+      <button class="iconbtn" id="nextDay" aria-label="Növbəti gün">›</button>
+      <button class="btn ghost small" id="todayBtn">Bu gün</button>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Günün tipi">
+        <button id="typeRest" aria-pressed="false">İstirahət günü</button>
+        <button id="typeGym" aria-pressed="false">Zal günü</button>
+      </div>
+      <button class="chip" id="tennisBtn" aria-pressed="false"><span class="dot"></span>Tennis</button>
+      <div class="tennisopts" id="tennisOpts" hidden>
+        <input class="num" type="number" id="tennisMin" min="10" max="300" step="5" value="60" aria-label="Dəqiqə"> <span class="small muted">dəq</span>
+        <select id="tennisKind" aria-label="Oyun növü"><option value="single">Tək (1×1)</option><option value="double">Cüt (2×2)</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div style="display:grid;gap:18px;min-width:0">
+      <div class="card">
+        <div class="summary">
+          <svg class="ring" viewBox="0 0 132 132" id="ring" role="img" aria-label="Kalori"></svg>
+          <div class="macros" id="macros"></div>
+        </div>
+        <div class="left" id="leftText"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:10px">Yediyini əlavə et</h3>
+        <form class="addform" id="addForm" autocomplete="off">
+          <div class="field full">
+            <label class="label" for="foodInput">Məhsul</label>
+            <input id="foodInput" list="foodList" placeholder="məs. yulaf, toyuq, yogurt greco…">
+            <datalist id="foodList"></datalist>
+          </div>
+          <div class="field">
+            <label class="label" for="gramInput">Qram</label>
+            <input class="num" id="gramInput" type="number" min="1" max="3000" step="1" inputmode="decimal" placeholder="100">
+          </div>
+          <div class="field">
+            <label class="label" for="mealSelect">Yemək</label>
+            <select id="mealSelect"></select>
+          </div>
+          <div class="preview full" id="addPreview"></div>
+          <div class="full row"><button class="btn" type="submit">Əlavə et</button><span class="small muted" id="hint"></span></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="mealhead" style="margin-bottom:8px"><h3>Gündəlik</h3><span class="small muted num" id="logTotal"></span></div>
+        <div id="log"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:18px;align-content:start;min-width:0">
+      <div class="card">
+        <div class="mealhead"><h3 id="planTitle">Bu günün menyusu</h3><span class="tag" id="planTag"></span></div>
+        <p class="small muted" style="margin:6px 0 4px">Plan üzrə yeyirsənsə, yeməyi bir toxunuşla gündəliyə əlavə et. Qramları sonra dəyişə bilərsən.</p>
+        <div id="planList"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px">Səhər çəkisi</h3>
+        <div class="row">
+          <input class="num" id="weightInput" type="number" step="0.1" min="30" max="200" inputmode="decimal" placeholder="58.3" style="width:110px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px" aria-label="Çəki kq">
+          <span class="muted">kq</span>
+          <button class="btn ghost small" id="saveWeight">Yadda saxla</button>
+        </div>
+        <p class="small muted" style="margin:8px 0 0">Tualetdən sonra, ac qarına, həftədə ən azı 4 dəfə.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALİZ -->
+<section class="sheet" id="sheet-analiz" hidden>
+  <div class="card" style="display:grid;gap:14px">
+    <h2>Son 7 gün</h2>
+    <div class="kpis" id="kpis"></div>
+    <div id="advice"></div>
+  </div>
+  <div class="card chart" style="display:grid;gap:10px">
+    <div class="mealhead"><h3>Kalori: yeyilən və norma (14 gün)</h3></div>
+    <div class="legend"><span style="--sw:var(--good)">normaya yaxın (±10%)</span><span style="--sw:var(--warn)">az</span><span style="--sw:var(--bad)">çox (+15%)</span><span style="--sw:var(--ink)">— norma</span></div>
+    <div id="kcalChart"></div>
+  </div>
+  <div class="card chart" style="display:grid;gap:10px">
+    <h3>Protein (q) və minimum norma</h3>
+    <div id="protChart"></div>
+  </div>
+  <div class="card chart" style="display:grid;gap:10px">
+    <h3>Çəki və 7 günlük ortalama</h3>
+    <div class="legend"><span style="--sw:var(--muted)">gündəlik çəki</span><span style="--sw:var(--accent)">7 günlük ortalama</span></div>
+    <div id="weightChart"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px">Gün-gün cədvəl</h3>
+    <div class="tbl"><table id="dayTable"></table></div>
+  </div>
+</section>
+
+<!-- MENYU -->
+<section class="sheet" id="sheet-menyu" hidden>
+  <div class="card" style="display:grid;gap:12px">
+    <h2>Gündə 5 yemək</h2>
+    <ul class="rules" id="generalRules"></ul>
+  </div>
+  <div class="card" style="display:grid;gap:12px">
+    <h3>Nə vaxt yemək: məşq saatına görə</h3>
+    <div class="daysel" id="timingSel"></div>
+    <div class="timing" id="timingList"></div>
+  </div>
+  <div class="card" style="display:grid;gap:12px">
+    <h3>7 günlük menyu</h3>
+    <div class="daysel" id="menuSel"></div>
+    <div id="menuDay"></div>
+  </div>
+  <div class="card" style="display:grid;gap:10px">
+    <h3>Tennis günü</h3>
+    <ul class="rules" id="tennisTips"></ul>
+  </div>
+  <div class="card" style="display:grid;gap:10px">
+    <div class="mealhead"><h3>Həftəlik alış-veriş siyahısı</h3><span class="small muted" id="shopTotal"></span></div>
+    <p class="small muted" style="margin:0">Menyunun 1 həftəsi üçün (bar/restoran yeməkləri daxil deyil). Qiymətlər Bolonya supermarketləri üçün təxminidir.</p>
+    <div class="tbl"><table id="shopTable"></table></div>
+  </div>
+</section>
+
+<!-- MƏŞQ -->
+<section class="sheet" id="sheet-mesq" hidden>
+  <div class="card" style="display:grid;gap:12px">
+    <h2>Full-body A / B · həftədə 3 dəfə</h2>
+    <div class="week" id="weekPlan"></div>
+    <ul class="rules" id="trainRules"></ul>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="mealhead"><h3>Məşq A</h3><span class="small muted">≈ 60 dəq</span></div><div id="exA"></div></div>
+    <div class="card"><div class="mealhead"><h3>Məşq B</h3><span class="small muted">≈ 60 dəq</span></div><div id="exB"></div></div>
+  </div>
+</section>
+
+<!-- BOLONYA -->
+<section class="sheet" id="sheet-bolonya" hidden>
+  <div class="card" style="display:grid;gap:14px">
+    <h2>Bolonyada necə yemək</h2>
+    <div id="bologna" style="display:grid;gap:14px"></div>
+  </div>
+  <div class="card" style="display:grid;gap:10px">
+    <h3>Məhsul bazası (100 q üçün)</h3>
+    <div class="field"><label class="label" for="dbSearch">Axtar</label><input id="dbSearch" placeholder="ad və ya italyanca ad"></div>
+    <div class="tbl"><table id="foodTable"></table></div>
+  </div>
+</section>
+
+<!-- PROFİL -->
+<section class="sheet" id="sheet-profil" hidden>
+  <div class="grid2">
+    <div class="card" style="display:grid;gap:12px">
+      <h2>Profil</h2>
+      <form id="profileForm" class="addform">
+        <div class="field"><label class="label" for="pWeight">Çəki, kq</label><input class="num" id="pWeight" type="number" step="0.1"></div>
+        <div class="field"><label class="label" for="pHeight">Boy, sm</label><input class="num" id="pHeight" type="number" step="1"></div>
+        <div class="field"><label class="label" for="pAge">Yaş</label><input class="num" id="pAge" type="number" step="1"></div>
+        <div class="field"><label class="label" for="pAct">Gündəlik aktivlik</label>
+          <select id="pAct"><option value="1.3">Çox az hərəkət (×1,3)</option><option value="1.4">Tələbə, piyada gəzir (×1,4)</option><option value="1.5">Ayaq üstə iş (×1,5)</option></select></div>
+        <div class="field"><label class="label" for="pSurplus">Artıq kalori, kkal</label><input class="num" id="pSurplus" type="number" step="50"></div>
+        <div class="field"><label class="label" for="pGym">Zal məşqi, kkal</label><input class="num" id="pGym" type="number" step="10"></div>
+        <div class="full row"><button class="btn" type="submit">Yadda saxla</button></div>
+      </form>
+    </div>
+    <div class="card" style="display:grid;gap:10px">
+      <h3>Hesablama</h3>
+      <div class="tbl"><table id="calcTable"></table></div>
+      <p class="small muted" style="margin:0">Formula: Mifflin–St Jeor. Tennis: (MET − 1) × çəki × saat; tək oyun MET 8, cüt oyun MET 6. Məqsəd: həftədə +0,2–0,3 kq (təmiz kütlə).</p>
+    </div>
+  </div>
+  <div class="card" style="display:grid;gap:10px">
+    <h3>Öz məhsulunu əlavə et</h3>
+    <p class="small muted" style="margin:0">Qablaşdırmanın üzərindəki “Valori nutrizionali per 100 g” cədvəlindən yaz: Energia (kcal), Proteine, Carboidrati, Grassi.</p>
+    <form id="customForm" class="addform">
+      <div class="field full"><label class="label" for="cName">Ad</label><input id="cName" placeholder="məs. Esselunga protein puding"></div>
+      <div class="field"><label class="label" for="cK">kkal</label><input class="num" id="cK" type="number" step="1"></div>
+      <div class="field"><label class="label" for="cP">Protein, q</label><input class="num" id="cP" type="number" step="0.1"></div>
+      <div class="field"><label class="label" for="cC">Karbohidrat, q</label><input class="num" id="cC" type="number" step="0.1"></div>
+      <div class="field"><label class="label" for="cF">Yağ, q</label><input class="num" id="cF" type="number" step="0.1"></div>
+      <div class="full row"><button class="btn" type="submit">Əlavə et</button></div>
+    </form>
+    <ul class="items" id="customList"></ul>
+  </div>
+  <div class="card" id="backupCard" style="display:grid;gap:10px">
+    <h3>Məlumatlar</h3>
+    <p class="small muted" style="margin:0" id="storageNote"></p>
+    <details id="backupBox"><summary>Ehtiyat nüsxə (JSON)</summary>
+      <div style="display:grid;gap:8px;margin-top:8px">
+        <div class="row"><button class="btn ghost small" id="exportBtn" type="button">Mətni göstər</button><button class="btn ghost small" id="copyBtn" type="button">Kopyala</button><button class="btn ghost small" id="importBtn" type="button">Mətndən bərpa et</button></div>
+        <textarea id="backupText" aria-label="Ehtiyat nüsxə mətni"></textarea>
+      </div>
+    </details>
+    <p class="small muted" style="margin:0">Bu plan tibbi məsləhət deyil. Sağlamlıq problemin varsa, həkimlə məsləhətləş.</p>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const PLAN = /*__PLAN__*/null;
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = (n, d=0) => {   // Azerbaijani style: 2 670 · 58,4
+  const s = Math.abs(Number(n)||0).toFixed(d).split(".");
+  const neg = Number(n) < 0 && Number(s.join("")) !== 0 ? "−" : "";
+  return neg + s[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f") + (s[1] ? "," + s[1] : "");
+};
+const DAYS = ["Bazar","Bazar ertəsi","Çərşənbə axşamı","Çərşənbə","Cümə axşamı","Cümə","Şənbə"];
+const MONTHS = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avqust","sentyabr","oktyabr","noyabr","dekabr"];
+const MEALS = PLAN.meals;
+
+/* ---------- state ---------- */
+const state = {
+  profile: Object.assign({}, PLAN.profile, {customFoods: []}),
+  days: {},           // date -> day doc
+  cur: isoDate(new Date()),
+  mode: "none",       // "db" | "local" | "none"
+};
+function isoDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function parseISO(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); }
+function addDays(s, n){ const d=parseISO(s); d.setDate(d.getDate()+n); return isoDate(d); }
+function menuIndex(s){ return (parseISO(s).getDay()+6)%7; }   // Monday = 0
+function defaultType(s){ return PLAN.menu[menuIndex(s)].type; }
+function getDay(s){
+  return state.days[s] || {date:s, type:defaultType(s), tennis:{on:false,min:60,kind:"single"}, items:[], weight:null};
+}
+
+/* ---------- foods ---------- */
+function allFoods(){
+  const base = PLAN.foods.map(f => ({id:f.id, name:f.name, it:f.it, cat:f.cat, k:f.k, p:f.p, c:f.c, f:f.f, hint:f.hint}));
+  const custom = (state.profile.customFoods||[]).map(f => ({id:f.id, name:f.name, it:"", cat:"Öz məhsulum", k:f.k, p:f.p, c:f.c, f:f.f, hint:""}));
+  return base.concat(custom);
+}
+function foodById(id){ return allFoods().find(f => f.id === id); }
+function foodLabel(f){ return f.it ? f.name+" ("+f.it+")" : f.name; }
+function findFood(text){
+  const t = text.trim().toLowerCase(); if(!t) return null;
+  const list = allFoods();
+  return list.find(f => foodLabel(f).toLowerCase() === t) || list.find(f => f.name.toLowerCase() === t)
+      || list.find(f => (f.it||"").toLowerCase() === t) || null;
+}
+function calc(f, g){ return {kcal:f.k*g/100, p:f.p*g/100, c:f.c*g/100, fat:f.f*g/100}; }
+
+/* ---------- targets ---------- */
+function targetsFor(day){
+  const p = state.profile;
+  const bmr = 10*p.weight + 6.25*p.height - 5*p.age + 5;
+  const base = bmr*p.activity;
+  let kcal = base + p.surplus + (day.type === "gym" ? p.gym_kcal : 0);
+  let tennis = 0;
+  if(day.tennis && day.tennis.on){ tennis = ((day.tennis.kind === "double" ? 6 : 8) - 1) * p.weight * (day.tennis.min/60); kcal += tennis; }
+  kcal = Math.round(kcal/10)*10;
+  const prot = Math.round(p.protein_gkg * p.weight);
+  const fat = Math.round(kcal * p.fat_pct / 9);
+  const carb = Math.round((kcal - prot*4 - fat*9)/4);
+  return {bmr:Math.round(bmr), base:Math.round(base), kcal, p:prot, f:fat, c:carb, tennis:Math.round(tennis)};
+}
+function totals(day){
+  const t = {kcal:0,p:0,c:0,fat:0};
+  for(const it of day.items){ t.kcal+=it.kcal; t.p+=it.p; t.c+=it.c; t.fat+=it.fat; }
+  return t;
+}
+
+/* ---------- storage ---------- */
+const LS_KEY = "kutle-plani-v1";
+let db = null, saveTimers = {}, saving = {};
+const pending = new Set();   // paths with local edits not yet confirmed by the store
+function lsLoad(){ try{ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
+function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({profile:state.profile, days:state.days})); return true; }catch(e){ return false; } }
+function setSync(t){ $("#sync").textContent = t; }
+
+function persistDay(date){
+  if(state.mode === "db"){ queueWrite("days/"+date, () => state.days[date]); }
+  else if(state.mode === "local"){ lsSave() ? setSync("Bu cihazda saxlanılıb") : setSync("Saxlanmadı"); }
+}
+function persistProfile(){
+  if(state.mode === "db"){ queueWrite("settings/profile", () => state.profile); }
+  else if(state.mode === "local"){ lsSave(); }
+}
+function queueWrite(path, getter){
+  clearTimeout(saveTimers[path]);
+  pending.add(path);
+  setSync("Saxlanılır…");
+  saveTimers[path] = setTimeout(() => doWrite(path, getter), 600);
+}
+async function doWrite(path, getter){
+  if(saving[path]){ saving[path].again = true; return; }
+  saving[path] = {again:false};
+  try{
+    const data = getter();
+    if(data) await db.doc(path).set(JSON.parse(JSON.stringify(data)));
+    else await db.doc(path).delete();
+    setSync("Saxlanılıb ✓");
+  }catch(e){
+    setSync(e && e.code === "quota_exceeded" ? "Yaddaş doludur" : "Saxlanmadı — yenidən cəhd ediləcək");
+    if(e && e.code === "unavailable") setTimeout(() => doWrite(path, getter), 1500 + Math.random()*1000);
+  }finally{
+    const again = saving[path].again; delete saving[path];
+    if(again) doWrite(path, getter); else pending.delete(path);
+  }
+}
+
+async function initStorage(){
+  let caps = null;
+  if(window.claude && typeof window.claude.use === "function"){
+    try{ caps = await window.claude.use("db"); }catch(e){ caps = null; }
+  }
+  if(caps){
+    db = caps; state.mode = "db";
+    setSync("Hesabında saxlanılır");
+    $("#storageNote").textContent = "Gündəliyin claude.ai hesabında saxlanılır: telefondan da, kompüterdən də eyni məlumatı görürsən. Claude-dan “gündəliyimi analiz et” deyə xahiş edə bilərsən.";
+    db.doc("settings/profile").onSnapshot(snap => {
+      if(snap.exists && !pending.has("settings/profile")){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, snap.data()); renderAll(); }
+    }, () => setSync("Bağlantı kəsildi"));
+    db.collection("days").onSnapshot(snap => {
+      const next = {};
+      snap.docs.forEach(d => { const v = d.data(); if(v) next[d.id] = JSON.parse(JSON.stringify(v)); });
+      // keep local edits that are still waiting to be written
+      pending.forEach(p => { if(p.startsWith("days/")){ const k = p.slice(5); if(state.days[k]) next[k] = state.days[k]; else delete next[k]; } });
+      state.days = next; renderAll();
+    }, () => setSync("Bağlantı kəsildi"));
+    return;
+  }
+  const saved = lsLoad();
+  let lsOk = true; try{ localStorage.setItem(LS_KEY+"-t","1"); localStorage.removeItem(LS_KEY+"-t"); }catch(e){ lsOk = false; }
+  if(lsOk){
+    state.mode = "local";
+    if(saved){ state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, saved.profile||{}); state.days = saved.days||{}; }
+    setSync("Bu cihazda saxlanılır");
+    $("#storageNote").textContent = "Məlumatlar bu brauzerdə saxlanılır. Başqa cihaza keçmək və ya ehtiyat üçün aşağıdakı JSON mətnini kopyala.";
+  } else {
+    state.mode = "none";
+    setSync("Saxlama mümkün deyil");
+    $("#storageNote").textContent = "Bu pəncərədə saxlama mümkün deyil: səhifəni bağlayanda yazdıqların silinəcək.";
+  }
+  renderAll();
+}
+
+/* ---------- UI helpers ---------- */
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2200); }
+function prettyDate(s){ const d=parseISO(s); return d.getDate()+" "+MONTHS[d.getMonth()]+", "+DAYS[d.getDay()]; }
+function statusOf(eaten, target){
+  if(!eaten) return null;
+  const r = eaten/target;
+  if(r < 0.9) return ["s-warn","az"];
+  if(r > 1.15) return ["s-bad","çox"];
+  return ["s-good","normada"];
+}
+function colorFor(eaten, target){
+  const r = eaten/target; return r < 0.9 ? "var(--warn)" : r > 1.15 ? "var(--bad)" : "var(--good)";
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  document.querySelectorAll("section.sheet").forEach(s => s.hidden = s.id !== "sheet-"+name);
+  try{ localStorage.setItem(LS_KEY+"-tab", name); }catch(e){}
+  if(name === "analiz") renderAnalysis();
+}
+
+/* ---------- TODAY ---------- */
+function mutateDay(fn){
+  const d = JSON.parse(JSON.stringify(getDay(state.cur)));
+  fn(d);
+  state.days[state.cur] = d;
+  persistDay(state.cur);
+  renderToday();
+}
+$("#prevDay").onclick = () => { state.cur = addDays(state.cur,-1); renderToday(); };
+$("#nextDay").onclick = () => { state.cur = addDays(state.cur, 1); renderToday(); };
+$("#todayBtn").onclick = () => { state.cur = isoDate(new Date()); renderToday(); };
+$("#typeRest").onclick = () => mutateDay(d => d.type = "rest");
+$("#typeGym").onclick = () => mutateDay(d => d.type = "gym");
+$("#tennisBtn").onclick = () => mutateDay(d => { d.tennis = d.tennis||{min:60,kind:"single"}; d.tennis.on = !d.tennis.on; });
+$("#tennisMin").onchange = e => mutateDay(d => { d.tennis.min = Math.max(10, Math.min(300, Number(e.target.value)||60)); });
+$("#tennisKind").onchange = e => mutateDay(d => { d.tennis.kind = e.target.value; });
+
+function fillMealSelect(){
+  const sel = $("#mealSelect"); sel.innerHTML = MEALS.map(m => `<option>${esc(m)}</option>`).join("");
+  const h = new Date().getHours();
+  sel.value = h < 10 ? MEALS[0] : h < 12 ? MEALS[1] : h < 16 ? MEALS[2] : h < 19 ? MEALS[3] : MEALS[4];
+}
+function fillFoodList(){
+  $("#foodList").innerHTML = allFoods().map(f => `<option value="${esc(foodLabel(f))}"></option>`).join("");
+}
+function updatePreview(){
+  const f = findFood($("#foodInput").value), g = Number($("#gramInput").value);
+  const pv = $("#addPreview"), hint = $("#hint");
+  hint.textContent = f && f.hint ? f.hint : "";
+  if(!f){ pv.textContent = $("#foodInput").value.trim() ? "Siyahıdan məhsul seç və ya Profil bölməsində öz məhsulunu əlavə et." : ""; return; }
+  if(!g){ pv.textContent = `100 q: ${fmt(f.k)} kkal · P ${fmt(f.p,1)} · K ${fmt(f.c,1)} · Y ${fmt(f.f,1)}`; return; }
+  const m = calc(f,g);
+  pv.textContent = `${fmt(g)} q = ${fmt(m.kcal)} kkal · P ${fmt(m.p,1)} q · K ${fmt(m.c,1)} q · Y ${fmt(m.fat,1)} q`;
+}
+$("#foodInput").addEventListener("input", updatePreview);
+$("#gramInput").addEventListener("input", updatePreview);
+$("#addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = findFood($("#foodInput").value), g = Number($("#gramInput").value);
+  if(!f){ toast("Məhsulu siyahıdan seç"); return; }
+  if(!(g > 0)){ toast("Qramı yaz"); return; }
+  addItems([{f:f.id, g}], $("#mealSelect").value);
+  $("#foodInput").value = ""; $("#gramInput").value = ""; updatePreview();
+  toast(`${f.name} əlavə olundu`);
+  $("#foodInput").focus();
+});
+function addItems(list, meal){
+  mutateDay(d => {
+    for(const {f:fid, g} of list){
+      const f = foodById(fid); if(!f) continue;
+      const m = calc(f, g);
+      d.items.push({id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), f:fid, name:f.name, g,
+        kcal:+m.kcal.toFixed(1), p:+m.p.toFixed(1), c:+m.c.toFixed(1), fat:+m.fat.toFixed(1), meal});
+    }
+  });
+}
+function removeItem(id){ mutateDay(d => { d.items = d.items.filter(i => i.id !== id); }); }
+
+$("#saveWeight").onclick = () => {
+  const w = Number($("#weightInput").value);
+  if(!(w > 30 && w < 200)){ toast("Çəkini kq ilə yaz, məs. 58.4"); return; }
+  mutateDay(d => d.weight = +w.toFixed(1)); toast("Çəki yazıldı");
+};
+
+function ring(eaten, target){
+  const r = 56, C = 2*Math.PI*r, frac = Math.min(eaten/target, 1);
+  const col = eaten ? colorFor(eaten, target) : "var(--line)";
+  return `<circle cx="66" cy="66" r="${r}" fill="none" stroke="var(--sunken)" stroke-width="12"/>
+  <circle cx="66" cy="66" r="${r}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round"
+    stroke-dasharray="${(C*frac).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 66 66)"/>
+  <text x="66" y="62" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="26">${fmt(eaten)}</text>
+  <text x="66" y="82" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" style="fill:var(--muted)">/ ${fmt(target)} kkal</text>`;
+}
+function renderToday(){
+  const day = getDay(state.cur), tg = targetsFor(day), t = totals(day);
+  const isToday = state.cur === isoDate(new Date());
+  $("#dateLabel").textContent = (isToday ? "Bu gün · " : "") + prettyDate(state.cur);
+  $("#typeRest").setAttribute("aria-pressed", String(day.type !== "gym"));
+  $("#typeGym").setAttribute("aria-pressed", String(day.type === "gym"));
+  const ten = day.tennis || {on:false,min:60,kind:"single"};
+  $("#tennisBtn").setAttribute("aria-pressed", String(!!ten.on));
+  $("#tennisOpts").hidden = !ten.on;
+  $("#tennisMin").value = ten.min; $("#tennisKind").value = ten.kind;
+  $("#ring").innerHTML = ring(t.kcal, tg.kcal);
+  const rows = [["Protein", t.p, tg.p, "var(--p)", "min"], ["Karbohidrat", t.c, tg.c, "var(--c)", ""], ["Yağ", t.fat, tg.f, "var(--f)", ""]];
+  $("#macros").innerHTML = rows.map(([n,v,g,c,mn]) => `<div class="mrow"><span>${n}</span><div class="bar"><i style="width:${Math.min(100, v/g*100).toFixed(1)}%;background:${c}"></i></div><span class="num small">${fmt(v)} / ${mn?"≥":""}${fmt(g)} q</span></div>`).join("")
+    + `<div class="small muted">${day.type==="gym"?"Zal günü":"İstirahət günü"}${tg.tennis?` · tennis +${fmt(tg.tennis)} kkal`:""} · BMR ${fmt(tg.bmr)}</div>`;
+  const left = tg.kcal - t.kcal, st = statusOf(t.kcal, tg.kcal);
+  $("#leftText").innerHTML = !t.kcal ? `Hələ heç nə yazılmayıb. Bu günün norması: <b class="num">${fmt(tg.kcal)} kkal</b>, protein ən azı <b class="num">${fmt(tg.p)} q</b>.`
+    : (left > 0 ? `Daha <b class="num">${fmt(left)} kkal</b> yeyə bilərsən` : `Normanı <b class="num">${fmt(-left)} kkal</b> keçmisən`)
+      + (t.p < tg.p ? ` · proteinə <b class="num">${fmt(tg.p - t.p)} q</b> qalıb ` : " · protein norması tamamdır ")
+      + (st ? `<span class="state ${st[0]}">${st[1]}</span>` : "");
+  // log
+  $("#logTotal").textContent = day.items.length ? `${fmt(t.kcal)} kkal · ${day.items.length} məhsul` : "";
+  $("#log").innerHTML = MEALS.map(m => {
+    const its = day.items.filter(i => i.meal === m);
+    const sum = its.reduce((a,i) => a+i.kcal, 0);
+    return `<div class="meal"><div class="mealhead"><span class="label">${esc(m)}</span><span class="num small muted">${its.length?fmt(sum)+" kkal":""}</span></div>
+      ${its.length ? `<ul class="items">${its.map(i => `<li><span class="nm">${esc(i.name)} <span class="muted num small">${fmt(i.g)} q</span></span><span class="num small">${fmt(i.kcal)} kkal · P ${fmt(i.p)}</span><button class="del" data-del="${esc(i.id)}" aria-label="Sil">×</button></li>`).join("")}</ul>` : `<div class="empty">—</div>`}</div>`;
+  }).join("");
+  $("#log").querySelectorAll("[data-del]").forEach(b => b.onclick = () => removeItem(b.dataset.del));
+  $("#weightInput").value = day.weight || "";
+  // plan for this weekday
+  const md = PLAN.menu[menuIndex(state.cur)];
+  $("#planTitle").textContent = "Menyu: " + md.day;
+  $("#planTag").textContent = md.type === "gym" ? "zal günü" : "istirahət";
+  $("#planTag").className = "tag" + (md.type === "gym" ? " gym" : "");
+  const timing = PLAN.timing.rest[1];
+  $("#planList").innerHTML = md.meals.map((m, i) => {
+    const kc = m.items.reduce((a,[fid,g]) => a + foodById(fid).k*g/100, 0);
+    return `<div class="planmeal"><span class="t">${timing[i][0]}</span><div class="what"><div><b>${esc(m.meal)}</b> · ${esc(m.title)}</div><div class="ing">${m.items.map(([fid,g]) => esc(foodById(fid).name)+" "+g+" q").join(", ")} · <span class="num">${fmt(kc)} kkal</span></div></div><button class="btn ghost small" data-plan="${i}">+ Əlavə</button></div>`;
+  }).join("") + (day.tennis && day.tennis.on ? `<div class="planmeal"><span class="t">tennis</span><div class="what"><div><b>Əlavə qəlyanaltı</b> · banan + 3 qalleta</div><div class="ing">oyundan 60–90 dəq əvvəl</div></div><button class="btn ghost small" data-tennis="1">+ Əlavə</button></div>` : "");
+  $("#planList").querySelectorAll("[data-plan]").forEach(b => b.onclick = () => { const m = md.meals[+b.dataset.plan]; addItems(m.items.map(([f,g]) => ({f,g})), m.meal); toast(m.meal+" əlavə olundu"); });
+  const tb = $("#planList").querySelector("[data-tennis]");
+  if(tb) tb.onclick = () => { addItems([{f:"banan",g:120},{f:"gallette",g:24}], MEALS[3]); toast("Tennis qəlyanaltısı əlavə olundu"); };
+}
+
+/* ---------- ANALYSIS ---------- */
+function lastN(n, end){ const out=[]; for(let i=n-1;i>=0;i--) out.push(addDays(end, -i)); return out; }
+function svgBars(dates, valueOf, targetOf, colorOf, unit){
+  const W=640, H=220, L=40, R=8, T=10, B=28, cw=(W-L-R)/dates.length;
+  const vals = dates.map(valueOf), tgs = dates.map(targetOf);
+  const maxV = Math.max(...vals, ...tgs, 1);
+  const step = maxV > 2000 ? 1000 : maxV > 400 ? 100 : maxV > 150 ? 50 : 25;
+  const top = Math.ceil(maxV*1.1/step)*step;
+  const y = v => T + (H-T-B)*(1 - v/top);
+  let g = "";
+  for(let v=0; v<=top; v+=step){ g += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${fmt(v)}</text>`; }
+  dates.forEach((d,i) => {
+    const x = L + i*cw, v = vals[i], tv = tgs[i], bw = Math.max(cw*0.62, 4), bx = x + (cw-bw)/2;
+    if(v > 0) g += `<rect x="${bx.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(y(0)-y(v)).toFixed(1)}" rx="2" fill="${colorOf(v,tv)}"><title>${prettyDate(d)}: ${fmt(v)} ${unit} / ${fmt(tv)}</title></rect>`;
+    g += `<line x1="${(x+2).toFixed(1)}" x2="${(x+cw-2).toFixed(1)}" y1="${y(tv).toFixed(1)}" y2="${y(tv).toFixed(1)}" stroke="var(--ink)" stroke-width="2"/>`;
+    const dd = parseISO(d);
+    if(dates.length <= 14 || i % 2 === 0) g += `<text x="${(x+cw/2).toFixed(1)}" y="${H-10}" text-anchor="middle">${dd.getDate()}.${String(dd.getMonth()+1).padStart(2,"0")}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Qrafik">${g}</svg>`;
+}
+function svgWeight(dates){
+  const pts = dates.map(d => ({d, w: (state.days[d]||{}).weight || null}));
+  const have = pts.filter(p => p.w);
+  if(have.length < 2) return `<p class="empty">Qrafik üçün ən azı 2 gün çəki yaz (“Bu gün” → Səhər çəkisi).</p>`;
+  const avg = pts.map((p,i) => { const win = pts.slice(Math.max(0,i-6), i+1).filter(q => q.w); return win.length >= 3 ? win.reduce((a,q)=>a+q.w,0)/win.length : null; });
+  const all = have.map(p=>p.w).concat(avg.filter(Boolean));
+  const lo = Math.floor((Math.min(...all)-0.3)*2)/2, hi = Math.ceil((Math.max(...all)+0.3)*2)/2;
+  const W=640, H=200, L=40, R=8, T=10, B=28, cw=(W-L-R)/(dates.length-1);
+  const x = i => L + i*cw, y = v => T + (H-T-B)*(1-(v-lo)/(hi-lo));
+  let g = "";
+  const st = (hi-lo) > 3 ? 1 : 0.5;
+  for(let v=lo; v<=hi+1e-9; v+=st){ g += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${fmt(v,1)}</text>`; }
+  pts.forEach((p,i) => { if(p.w) g += `<circle cx="${x(i)}" cy="${y(p.w)}" r="3.5" fill="var(--muted)"><title>${prettyDate(p.d)}: ${fmt(p.w,1)} kq</title></circle>`;
+    const dd=parseISO(p.d); if(i % 3 === 0 || i === pts.length-1) g += `<text x="${x(i)}" y="${H-10}" text-anchor="middle">${dd.getDate()}.${String(dd.getMonth()+1).padStart(2,"0")}</text>`; });
+  let path = ""; avg.forEach((v,i) => { if(v!==null) path += (path?"L":"M") + x(i).toFixed(1)+","+y(v).toFixed(1); });
+  if(path) g += `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
+  const lastI = avg.map((v,i)=>v!==null?i:-1).filter(i=>i>=0).pop();
+  if(lastI !== undefined) g += `<circle cx="${x(lastI)}" cy="${y(avg[lastI])}" r="5" fill="var(--accent)"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Çəki qrafiki">${g}</svg>`;
+}
+function avgWeight(dates){ const w = dates.map(d => (state.days[d]||{}).weight).filter(Boolean); return w.length >= 3 ? w.reduce((a,b)=>a+b,0)/w.length : null; }
+function renderAnalysis(){
+  const today = isoDate(new Date());
+  const d7 = lastN(7, today), d14 = lastN(14, today), d28 = lastN(28, today);
+  const logged = d7.filter(d => (state.days[d]||{items:[]}).items.length);
+  const avgK = logged.length ? logged.reduce((a,d) => a + totals(state.days[d]).kcal, 0)/logged.length : 0;
+  const avgT = logged.length ? logged.reduce((a,d) => a + targetsFor(state.days[d]).kcal, 0)/logged.length : targetsFor(getDay(today)).kcal;
+  const avgP = logged.length ? logged.reduce((a,d) => a + totals(state.days[d]).p, 0)/logged.length : 0;
+  const protOk = logged.filter(d => totals(state.days[d]).p >= targetsFor(state.days[d]).p*0.95).length;
+  const gymDays = d7.filter(d => (state.days[d]||{}).type === "gym" && state.days[d]).length;
+  const tennisMin = d7.reduce((a,d) => a + ((state.days[d]||{}).tennis && state.days[d].tennis.on ? state.days[d].tennis.min : 0), 0);
+  const wNow = avgWeight(d7), wPrev = avgWeight(lastN(7, addDays(today,-7)));
+  const rate = (wNow !== null && wPrev !== null) ? wNow - wPrev : null;
+  $("#kpis").innerHTML = [
+    ["Orta kalori", logged.length ? fmt(avgK) : "—", logged.length ? `norma ${fmt(avgT)} · ${logged.length}/7 gün yazılıb` : "hələ məlumat yoxdur"],
+    ["Orta protein", logged.length ? fmt(avgP)+" q" : "—", `${protOk}/${logged.length||0} gün normada`],
+    ["Zal / tennis", `${gymDays} / ${fmt(tennisMin)} dəq`, "son 7 gün"],
+    ["Çəki dəyişməsi", rate === null ? "—" : (rate>=0?"+":"")+fmt(rate,2)+" kq", rate === null ? "2 həftə, hər həftə ≥3 çəki lazımdır" : "həftəlik ortalamalar fərqi"],
+  ].map(([a,b,c]) => `<div class="kpi"><span class="label">${a}</span><b class="num">${b}</b><span class="small muted">${c}</span></div>`).join("");
+  // advice
+  const adv = [];
+  if(!logged.length) adv.push(["", "Gündəliyə yazmağa başla: hər yeməyi çəkib “Bu gün” bölməsində əlavə et. Bir həftədən sonra burada analiz görünəcək."]);
+  else {
+    if(avgK < avgT*0.9) adv.push(["warn", `Ortalama normadan ${fmt(avgT-avgK)} kkal azdır. Kütlə üçün bu çatmır: hər gün 1 əlavə qəlyanaltı (məs. yoqurt + banan + 20 q badam ≈ 400 kkal) əlavə et.`]);
+    else if(avgK > avgT*1.12) adv.push(["warn", `Ortalama normadan ${fmt(avgK-avgT)} kkal çoxdur. Yağlı məhsulları (mortadella, pizza, qoz) azalt, porsiyaları çək.`]);
+    else adv.push(["", "Kalori normasına yaxşı riayət edirsən. Belə davam et."]);
+    if(avgP < targetsFor(getDay(today)).p*0.95) adv.push(["warn", `Protein azdır: ortalama ${fmt(avgP)} q. Hər yeməyə protein əlavə et (skyr, tuna, yumurta, toyuq).`]);
+  }
+  if(rate !== null){
+    if(rate < 0.1) adv.push(["warn", `Çəki həftədə ${fmt(rate,2)} kq dəyişib — artım yavaşdır. Normaya +150 kkal əlavə etməyi tövsiyə edirəm. <button class="btn small" id="applyPlus">+150 kkal tətbiq et</button>`]);
+    else if(rate > 0.4) adv.push(["warn", `Çəki həftədə +${fmt(rate,2)} kq artıb — çox sürətlidir, yağ da yığılır. Normadan 150 kkal çıx. <button class="btn small" id="applyMinus">−150 kkal tətbiq et</button>`]);
+    else adv.push(["", `Çəki həftədə +${fmt(rate,2)} kq artır — ideal temp (0,1–0,4 kq).`]);
+  }
+  $("#advice").innerHTML = adv.map(([c,t]) => `<div class="advice ${c}">${t}</div>`).join("");
+  const ap = $("#applyPlus"), am = $("#applyMinus");
+  if(ap) ap.onclick = () => { state.profile.surplus += 150; persistProfile(); renderAll(); toast("Norma +150 kkal artırıldı"); };
+  if(am) am.onclick = () => { state.profile.surplus -= 150; persistProfile(); renderAll(); toast("Norma 150 kkal azaldıldı"); };
+  // charts
+  $("#kcalChart").innerHTML = svgBars(d14, d => state.days[d] ? totals(state.days[d]).kcal : 0, d => targetsFor(getDay(d)).kcal, colorFor, "kkal");
+  $("#protChart").innerHTML = svgBars(d14, d => state.days[d] ? totals(state.days[d]).p : 0, d => targetsFor(getDay(d)).p, (v,t) => v >= t*0.95 ? "var(--p)" : "color-mix(in srgb, var(--p) 45%, transparent)", "q");
+  $("#weightChart").innerHTML = svgWeight(d28);
+  // table
+  const rows = d14.slice().reverse().filter(d => state.days[d]);
+  $("#dayTable").innerHTML = `<thead><tr><th>Tarix</th><th>Tip</th><th class="r">kkal</th><th class="r">norma</th><th class="r">P</th><th class="r">K</th><th class="r">Y</th><th class="r">çəki</th></tr></thead><tbody>` +
+    (rows.length ? rows.map(d => { const day = state.days[d], t = totals(day), tg = targetsFor(day), s = statusOf(t.kcal, tg.kcal);
+      return `<tr><td>${prettyDate(d)}</td><td>${day.type==="gym"?"zal":"istirahət"}${day.tennis&&day.tennis.on?" + tennis":""}</td><td class="r">${fmt(t.kcal)} ${s?`<span class="state ${s[0]}">${s[1]}</span>`:""}</td><td class="r">${fmt(tg.kcal)}</td><td class="r">${fmt(t.p)}</td><td class="r">${fmt(t.c)}</td><td class="r">${fmt(t.fat)}</td><td class="r">${day.weight?fmt(day.weight,1):""}</td></tr>`; }).join("")
+      : `<tr><td colspan="8" class="empty">Son 14 gündə qeyd yoxdur.</td></tr>`) + `</tbody>`;
+}
+
+/* ---------- MENU tab ---------- */
+let menuSel = menuIndex(isoDate(new Date())), timingSel = "evening";
+function renderMenu(){
+  $("#generalRules").innerHTML = PLAN.rules.map(r => `<li>${esc(r)}</li>`).join("");
+  $("#tennisTips").innerHTML = PLAN.tennis.map(r => `<li>${esc(r)}</li>`).join("");
+  const tk = ["rest","morning","midday","evening"];
+  $("#timingSel").innerHTML = tk.map(k => `<button data-k="${k}" aria-pressed="${k===timingSel}">${esc(PLAN.timing[k][0])}</button>`).join("");
+  $("#timingSel").querySelectorAll("button").forEach(b => b.onclick = () => { timingSel = b.dataset.k; renderMenu(); });
+  $("#timingList").innerHTML = PLAN.timing[timingSel][1].map(([t,m,n]) => `<div class="${m==="MƏŞQ"?"gymrow":""}"><span class="num">${t}</span><span><b>${esc(m)}</b>${n?` <span class="muted">— ${esc(n)}</span>`:""}</span></div>`).join("");
+  $("#menuSel").innerHTML = PLAN.menu.map((d,i) => `<button data-i="${i}" aria-pressed="${i===menuSel}">${esc(d.day)}</button>`).join("");
+  $("#menuSel").querySelectorAll("button").forEach(b => b.onclick = () => { menuSel = +b.dataset.i; renderMenu(); });
+  const md = PLAN.menu[menuSel], tg = targetsFor({type:md.type, tennis:{on:false}});
+  let sum = {k:0,p:0,c:0,f:0};
+  const body = md.meals.map((m,i) => {
+    let s = {k:0,p:0,c:0,f:0};
+    const ing = m.items.map(([fid,g]) => { const f = foodById(fid); s.k+=f.k*g/100; s.p+=f.p*g/100; s.c+=f.c*g/100; s.f+=f.f*g/100; return `${esc(f.name)} <span class="num">${g} q</span>`; }).join(", ");
+    Object.keys(sum).forEach(k => sum[k]+=s[k]);
+    return `<tr><td><b>${esc(m.meal)}</b><br><span class="small muted num">${PLAN.timing.rest[1][i][0]}</span></td><td>${esc(m.title)}<br><span class="small muted">${ing}</span></td><td class="r">${fmt(s.k)}</td><td class="r">${fmt(s.p)}</td><td class="r">${fmt(s.c)}</td><td class="r">${fmt(s.f)}</td></tr>`;
+  }).join("");
+  $("#menuDay").innerHTML = `<div class="row" style="margin-bottom:8px"><span class="tag ${md.type==="gym"?"gym":""}">${md.type==="gym"?"zal günü":"istirahət günü"}</span><span class="small muted">norma ${fmt(tg.kcal)} kkal · P ≥${tg.p} · K ${tg.c} · Y ${tg.f}</span></div>
+   <div class="tbl"><table><thead><tr><th>Yemək</th><th>Nə</th><th class="r">kkal</th><th class="r">P</th><th class="r">K</th><th class="r">Y</th></tr></thead><tbody>${body}
+   <tr><td colspan="2"><b>Cəmi</b></td><td class="r"><b>${fmt(sum.k)}</b></td><td class="r"><b>${fmt(sum.p)}</b></td><td class="r"><b>${fmt(sum.c)}</b></td><td class="r"><b>${fmt(sum.f)}</b></td></tr></tbody></table></div>`;
+  $("#shopTable").innerHTML = `<thead><tr><th>Məhsul</th><th>İtalyanca</th><th class="r">Həftəlik</th><th class="r">≈ €</th></tr></thead><tbody>` +
+    PLAN.shopping.map(s => `<tr><td>${esc(s.name)}</td><td class="muted">${esc(s.it)}</td><td class="r">${esc(s.qty)}</td><td class="r">${fmt(s.eur,2)}</td></tr>`).join("") + `</tbody>`;
+  $("#shopTotal").innerHTML = `Cəmi ≈ <b class="num">${fmt(PLAN.shopping.reduce((a,s)=>a+s.eur,0))} €</b>`;
+}
+
+/* ---------- WORKOUT ---------- */
+function renderWorkout(){
+  $("#weekPlan").innerHTML = PLAN.week.map(([d,t]) => `<div><b>${esc(d)}</b>${esc(t)}</div>`).join("");
+  $("#trainRules").innerHTML = PLAN.trainRules.map(r => `<li>${esc(r)}</li>`).join("");
+  ["A","B"].forEach(k => {
+    $("#ex"+k).innerHTML = PLAN.workout[k].map(e => `<div class="ex"><img loading="lazy" src="${esc(e.gif)}" data-alt="../${esc(e.gif)}" alt="${esc(e.en)}" width="96" height="96"><div style="min-width:0;display:grid;gap:4px"><b>${esc(e.name)}</b><div class="meta"><span>Set × təkrar <b>${esc(e.sets)}</b></span><span>Fasilə <b>${esc(e.rest)}</b></span></div><div class="small muted">${esc(e.cue)}</div></div></div>`).join("");
+  });
+  document.querySelectorAll(".ex img").forEach(img => img.addEventListener("error", () => { const a = img.dataset.alt; if(a){ img.dataset.alt = ""; img.src = a; } }));
+}
+
+/* ---------- BOLOGNA ---------- */
+function renderBologna(){
+  $("#bologna").innerHTML = PLAN.bologna.map(([h,t]) => `<div><h3 style="margin-bottom:4px">${esc(h)}</h3><p style="margin:0;max-width:68ch">${esc(t)}</p></div>`).join("");
+  renderFoodTable();
+}
+function renderFoodTable(){
+  const q = $("#dbSearch").value.trim().toLowerCase();
+  const list = allFoods().filter(f => !q || foodLabel(f).toLowerCase().includes(q));
+  $("#foodTable").innerHTML = `<thead><tr><th>Məhsul</th><th>Qrup</th><th class="r">kkal</th><th class="r">P</th><th class="r">K</th><th class="r">Y</th><th>Porsiya</th></tr></thead><tbody>` +
+    list.map(f => `<tr><td>${esc(f.name)}${f.it?`<br><span class="small muted">${esc(f.it)}</span>`:""}</td><td class="small muted">${esc(f.cat)}</td><td class="r">${fmt(f.k)}</td><td class="r">${fmt(f.p,1)}</td><td class="r">${fmt(f.c,1)}</td><td class="r">${fmt(f.f,1)}</td><td class="small muted">${esc(f.hint||"")}</td></tr>`).join("") + `</tbody>`;
+}
+$("#dbSearch").addEventListener("input", renderFoodTable);
+
+/* ---------- PROFILE ---------- */
+function renderProfile(){
+  const p = state.profile;
+  $("#pWeight").value = p.weight; $("#pHeight").value = p.height; $("#pAge").value = p.age;
+  $("#pAct").value = String(p.activity); $("#pSurplus").value = p.surplus; $("#pGym").value = p.gym_kcal;
+  const r = targetsFor({type:"rest",tennis:{on:false}}), g = targetsFor({type:"gym",tennis:{on:false}});
+  const t60 = Math.round(7*p.weight), d60 = Math.round(5*p.weight);
+  $("#calcTable").innerHTML = `<tbody>
+   <tr><td>Bazal metabolizm (BMR)</td><td class="r">${fmt(r.bmr)} kkal</td></tr>
+   <tr><td>Gündəlik xərc, məşqsiz (×${String(p.activity).replace(".",",")})</td><td class="r">${fmt(r.base)} kkal</td></tr>
+   <tr><td>Kütlə üçün artıq</td><td class="r">+${fmt(p.surplus)} kkal</td></tr>
+   <tr><td><b>İstirahət günü norması</b></td><td class="r"><b>${fmt(r.kcal)} kkal</b></td></tr>
+   <tr><td><b>Zal günü norması</b></td><td class="r"><b>${fmt(g.kcal)} kkal</b></td></tr>
+   <tr><td>Tennis, 60 dəq tək / cüt</td><td class="r">+${fmt(t60)} / +${fmt(d60)} kkal</td></tr>
+   <tr><td>Protein (2 q/kq), minimum</td><td class="r">${fmt(r.p)} q</td></tr>
+   <tr><td>Yağ (kalorinin 25%-i)</td><td class="r">${fmt(r.f)}–${fmt(g.f)} q</td></tr>
+   <tr><td>Karbohidrat</td><td class="r">${fmt(r.c)}–${fmt(g.c)} q</td></tr>
+   <tr><td>Su</td><td class="r">2,5–3 l</td></tr></tbody>`;
+  $("#customList").innerHTML = (p.customFoods||[]).map(f => `<li><span class="nm">${esc(f.name)}</span><span class="num small">${fmt(f.k)} kkal · P ${fmt(f.p,1)}</span><button class="del" data-cdel="${esc(f.id)}" aria-label="Sil">×</button></li>`).join("");
+  $("#customList").querySelectorAll("[data-cdel]").forEach(b => b.onclick = () => { p.customFoods = p.customFoods.filter(f => f.id !== b.dataset.cdel); persistProfile(); renderAll(); });
+}
+$("#profileForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const p = state.profile, n = s => Number($(s).value);
+  if(n("#pWeight") > 30) p.weight = n("#pWeight");
+  if(n("#pHeight") > 100) p.height = n("#pHeight");
+  if(n("#pAge") > 10) p.age = n("#pAge");
+  p.activity = Number($("#pAct").value);
+  p.surplus = n("#pSurplus") || 0; p.gym_kcal = n("#pGym") || 0;
+  persistProfile(); renderAll(); toast("Profil yeniləndi");
+});
+$("#customForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("#cName").value.trim(), k = Number($("#cK").value);
+  if(!name || !(k >= 0) || $("#cK").value === ""){ toast("Ad və kkal mütləqdir"); return; }
+  state.profile.customFoods = (state.profile.customFoods||[]).concat([{id:"c_"+Date.now().toString(36), name, k, p:Number($("#cP").value)||0, c:Number($("#cC").value)||0, f:Number($("#cF").value)||0}]);
+  e.target.reset(); persistProfile(); renderAll(); toast("Məhsul əlavə olundu");
+});
+$("#exportBtn").onclick = () => { $("#backupText").value = JSON.stringify({profile:state.profile, days:state.days}); };
+$("#copyBtn").onclick = () => {
+  const ta = $("#backupText"); if(!ta.value) ta.value = JSON.stringify({profile:state.profile, days:state.days});
+  navigator.clipboard && navigator.clipboard.writeText(ta.value).then(() => toast("Kopyalandı"), () => { ta.select(); toast("Mətni seçdim — kopyala"); });
+};
+$("#importBtn").onclick = async () => {
+  try{
+    const data = JSON.parse($("#backupText").value);
+    if(!data || typeof data.days !== "object") throw 0;
+    state.profile = Object.assign({}, PLAN.profile, {customFoods:[]}, data.profile||{});
+    state.days = Object.assign({}, state.days, data.days);
+    if(state.mode === "db"){ persistProfile(); for(const d of Object.keys(data.days)){ await doWrite("days/"+d, () => state.days[d]); } }
+    else lsSave();
+    renderAll(); toast("Bərpa olundu");
+  }catch(e){ toast("Mətn düzgün JSON deyil"); }
+};
+
+/* ---------- boot ---------- */
+function renderAll(){ fillFoodList(); renderToday(); renderMenu(); renderProfile(); if(!$("#sheet-analiz").hidden) renderAnalysis(); }
+fillMealSelect();
+renderAll(); renderWorkout(); renderBologna();
+try{ const t = localStorage.getItem(LS_KEY+"-tab"); if(t && document.getElementById("sheet-"+t)) showTab(t); }catch(e){}
+initStorage();
+})();
+</script>
